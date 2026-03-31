@@ -31,8 +31,8 @@ contract ERC721 {
 contract Web3Kinz {
     // insert variables here
 
-    // pet struct
-    // pet is NFT
+    /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
+    ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
     struct pet {
         // pet needs
         uint32 hunger;
@@ -40,6 +40,8 @@ contract Web3Kinz {
         uint32 sleep;
         // pet information
         uint32 petID; // unique pet id
+        bytes32 petType; // pet type
+        bytes32 petName; // pet name (this can be a bug)
         uint64 birthTime; // to give the pet a birthday
     }
 
@@ -55,6 +57,8 @@ contract Web3Kinz {
     // mappings + arrays
 
     // mapping cooldown for each game - possibly - need to google
+    // store timestamp of the time the game was played and compare to current time
+    // have a mapping for each game, map user address to timestamp
 
     // ***************
     // ** functions **
