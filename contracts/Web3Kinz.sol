@@ -54,6 +54,8 @@ contract Web3Kinz {
 
     // mappings + arrays
 
+    // mapping cooldown for each game - possibly - need to google
+
     // ***************
     // ** functions **
     // ***************
