@@ -103,14 +103,14 @@ contract Web3Kinz {
     // ** gameplay functions **
     // ************************
 
-    // spinning a wheel - give you furniture, clothes, KinzCash - once a day
+    // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
 
-    // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5
+    // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
 
     // yahtzee - requires user input?? - bonus points - once a day - receive berries
     // berries have special function
 
-    // gem hunt - 
+    // gem hunt - //rebecca
     // three tries to uncover a gem - 5 colors (white, red, blue, green, yellow), 6 per color
     // receive crown after collecting all 
     // gem is NFT
