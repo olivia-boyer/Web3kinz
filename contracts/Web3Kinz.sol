@@ -31,6 +31,9 @@ contract ERC721 {
 contract Web3Kinz {
     // insert variables here
 
+    //owner
+    adress owner;
+
     // global variable for total amount of food items
     uint256 gameFoodCount = 100;
 
@@ -57,6 +60,7 @@ contract Web3Kinz {
     // constructor
     constructor() payable {
         //
+        owner = msg.sender;
     }
 
     // *************
@@ -105,6 +109,15 @@ contract Web3Kinz {
     // ***************
 
     // modifier for only owner
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    // modifier isSleeping - cannot play games when pet is sleeping
+    modifier isSleeping() {
+        _;
+    }
 
     // *******************
     // ** eth functions **
@@ -145,7 +158,7 @@ contract Web3Kinz {
 
     // put pet to bed
 
-    // modifier isSleeping - cannot play games when pet is sleeping
+
 
     // feed pet
 
