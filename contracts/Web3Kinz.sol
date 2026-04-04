@@ -45,11 +45,14 @@ contract Web3Kinz {
 
     /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
     ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
+    //modifications for additional data storage, not exactly 256
     struct Pet {
         // pet needs
-        uint32 hunger;
-        uint32 happiness;
-        uint32 sleep;
+        uint16 hunger;
+        uint16 happiness;
+        uint16 sleep;
+        bool asleep;
+        bool comatose;
         // pet information
         uint32 petID; // unique pet id
         bytes32 petType; // pet type
@@ -115,7 +118,14 @@ contract Web3Kinz {
     }
 
     // modifier isSleeping - cannot play games when pet is sleeping
-    modifier isSleeping() {
+    modifier isAwake(Pet target) {
+        require(target.asleep == false, "Your pet is asleep. Wake them up!");
+        _;
+    }
+
+    //check if pet is comatose
+    modifier notComatose(Pet target) {
+        require(target.comatose == false, "Your pet is comatose. Take them to the vet!!");
         _;
     }
 
@@ -136,7 +146,6 @@ contract Web3Kinz {
     }
 
     // purchase KinzCash
-
     function buyKinzCash() public payable{
         uint256 bought = msg.value / 1000
         userKinzcash(msg.sender) += bought;
@@ -157,8 +166,6 @@ contract Web3Kinz {
     // ************************
 
     // put pet to bed
-
-
 
     // feed pet
 
