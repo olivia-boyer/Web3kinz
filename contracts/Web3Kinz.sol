@@ -124,6 +124,11 @@ contract Web3Kinz {
 
     // purchase KinzCash
 
+    function buyKinzCash() public payable{
+        uint256 bought = msg.value / 1000
+        userKinzcash(msg.sender) += bought;
+    }
+
     // ************************
     // ** KinzCash functions **
     // ************************
