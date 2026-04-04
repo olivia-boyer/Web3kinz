@@ -31,6 +31,15 @@ contract ERC721 {
 contract Web3Kinz {
     // insert variables here
 
+    // global variable for total amount of food items
+    uint256 gameFoodCount = 100;
+
+    // global variable for total amount of furniture items
+    uint256 gameFurnitureCount = 100;
+
+    // global variable for total amount of clothing items
+    uint256 gameClothingCount = 100;
+
     /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
     ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
     struct Pet {
@@ -71,6 +80,20 @@ contract Web3Kinz {
     // mapping cooldown for each game - possibly - need to google
     // store timestamp of the time the game was played and compare to current time
     // have a mapping for each game, map user address to timestamp
+
+    // array of food
+    // directory of all food types available in the game
+    bytes2[gameFoodCount] public gameFoodDirectory;
+
+    // mapping of user (key) to amount of each food (value) the user has in their inventory
+    // user = address = msg.sender
+    // amount of each food = uint256[]
+    mapping(address => uint256[gameFoodCount]) userFoodCount;
+
+    // mapping of user (key) to last play time (value) for wheelOfWow()
+    // user = address = msg.sender
+    // last play time = uint64 = block.timestamp
+    mapping(address => uint64) wheelOfWowTime;
 
     // ***************
     // ** Events **
@@ -128,6 +151,79 @@ contract Web3Kinz {
     // ************************
 
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
+    function wheelOfWow() public {
+        // check the time, ensure 24 hours has past since last play time
+        require(block.timestamp >= wheelOfWowTime[msg.sender] + 1 days, "24 hours have not yet passed!!");
+        // update mapping to current time
+        wheelOfWowTime[msg.sender] = uint64(block.timestamp);
+
+        // generate a random number
+        uint256 wowValue = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 100;
+        nonce++;
+
+        // logic for prizes
+        // random selection of clothing
+        if (wowValue < 10) {
+            //
+        }
+        // random selection of furniture
+        else if (wowValue < 30) {
+            //
+        }
+        // random selection of food
+        else if (wowValue < 50) {
+            // generate a random number to select a random food from the gameFoodDirectory array
+            uint256 foodIndex = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % gameFoodCount;
+            nonce++;
+
+            // increment count for specific food item in user's inventory
+            userFoodCount[msg.sender][foodIndex] += 1;
+        }
+        // random amount of KinzCash
+        else {
+            // receive 20 KinzCash
+            if (wowValue < 60) {
+                // specified win value
+                uint256 cashAmount = 20;
+
+                // add given amount to user's KinzCash balance
+                userKinzcash[msg.sender] += cashAmount;
+            }
+            // receive 50 KinzCash
+            else if (wowValue < 70) {
+                // specified win value
+                uint256 cashAmount = 50;
+
+                // add given amount to user's KinzCash balance
+                userKinzcash[msg.sender] += cashAmount;
+            }
+            // receive 100 KinzCash
+            else if (wowValue < 80) {
+                // specified win value
+                uint256 cashAmount = 100;
+
+                // add given amount to user's KinzCash balance
+                userKinzcash[msg.sender] += cashAmount;
+            }
+            // receive 500 KinzCash
+            else if (wowValue < 90) {
+                // specified win value
+                uint256 cashAmount = 500;
+
+                // add given amount to user's KinzCash balance
+                userKinzcash[msg.sender] += cashAmount;
+            }
+            // receive random amount of KinzCash between 20 and 500
+            else if (wowValue < 100) {
+                // 500 - 20 = 480 => use % 481 to include 480 and add 20 to make up for the offset
+                uint256 cashAmount = (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 481) + 20;
+                nonce++;
+
+                // add generate amount to user's KinzCash balance
+                userKinzcash[msg.sender] += cashAmount;
+            }
+        }
+    }
 
     // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
 
