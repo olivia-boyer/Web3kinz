@@ -33,7 +33,7 @@ contract Web3Kinz {
 
     /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
     ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
-    struct pet {
+    struct Pet {
         // pet needs
         uint32 hunger;
         uint32 happiness;
@@ -56,9 +56,26 @@ contract Web3Kinz {
 
     // mappings + arrays
 
+    // general
+    mapping(uint32 => address) public petToOwner; // petID to owner address
+    Pet[] public pets; // index = petID
+
+    mapping(address => uint256) public userKinzcash; // user to kinzcash amount
+
+    uint256 private nonce = 0; // used for random number generation
+
+    // gem hunt
+    mapping(address => uint64) public lastGemHunt; // stores time of last gem hunt
+    mapping(address => uint256[]) public userGems; // stores users' gems
+
     // mapping cooldown for each game - possibly - need to google
     // store timestamp of the time the game was played and compare to current time
     // have a mapping for each game, map user address to timestamp
+
+    // ***************
+    // ** Events **
+    // ***************
+    event GemFound(address user, string gem);
 
     // ***************
     // ** functions **
@@ -71,8 +88,15 @@ contract Web3Kinz {
     // *******************
 
     // adoption
-    function functionName() public {
-        //
+    function adoptPet(uint32 petID, bytes32 petType, bytes32 petName) public {
+        // create pet struct
+        Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
+
+        // assign pet to owner & store pet
+        petToOwner[petID] = msg.sender;
+        pets.push(p);
+
+        // figure out how to actually mint the pet as an NFT later
     }
 
     // purchase KinzCash
@@ -110,10 +134,203 @@ contract Web3Kinz {
     // yahtzee - requires user input?? - bonus points - once a day - receive berries
     // berries have special function
 
-    // gem hunt - //rebecca
-    // three tries to uncover a gem - 5 colors (white, red, blue, green, yellow), 6 per color
-    // receive crown after collecting all 
-    // gem is NFT
+    // gem hunt
+    // gems are tracked as numbers in array, not nfts
+        function gemHunt() public {
+        // check time
+        require(block.timestamp - lastGemHunt[msg.sender] >= 1 days, "Gem hunt can only be played once a day");
+
+        // update time
+        lastGemHunt[msg.sender] = uint64(block.timestamp);
+
+        // for 3 tries
+        for (int i=0; i<3; i++) {
+            // generate random number
+            uint256 randomNumber = uint256(keccak256(abi.encodePacked(
+                block.timestamp, 
+                msg.sender, 
+                nonce
+            )));
+            nonce++;
+
+            // got gem
+            if ((randomNumber % 100) < 50) {
+                string memory gem;
+
+                // randomly choose gem (weighted by rarity)
+                uint256 randomNumber2 = uint256(keccak256(abi.encodePacked(
+                    block.timestamp, 
+                    msg.sender, 
+                    nonce
+                )));
+                nonce++;
+                
+                uint256 gemNum = randomNumber2 % 425;
+
+                // white gems
+                if (gemNum < 5) {
+                    gem = "webkinz diamond";
+                    userGems[msg.sender][0]++;
+                } else if (gemNum < 15) {
+                    gem = "unicorn horn";
+                    userGems[msg.sender][1]++;
+                } else if (gemNum < 25) {
+                    gem = "yum zum sparkle";
+                    userGems[msg.sender][2]++;
+                } else if (gemNum < 45) {
+                    gem = "zingos zincoz";
+                    userGems[msg.sender][3]++;
+                } else if (gemNum < 65) {
+                    gem = "goober glitter";
+                    userGems[msg.sender][4]++;
+                } else if (gemNum < 85) {
+                    gem = "booger nugget";
+                    userGems[msg.sender][5]++;
+
+                // red gems
+                } else if (gemNum < 90) {
+                    gem = "red ruby heart";
+                    userGems[msg.sender][6]++;
+                } else if (gemNum < 100) {
+                    gem = "ember amber";
+                    userGems[msg.sender][7]++;
+                } else if (gemNum < 110) {
+                    gem = "volcano viscose";
+                    userGems[msg.sender][8]++;
+                } else if (gemNum < 130) {
+                    gem = "flare fyca";
+                    userGems[msg.sender][9]++;
+                } else if (gemNum < 150) {
+                    gem = "torch treasure";
+                    userGems[msg.sender][10]++;
+                } else if (gemNum < 170) {
+                    gem = "lava lamp";
+                    userGems[msg.sender][11]++;
+
+                // green gems
+                } else if (gemNum < 175) {
+                    gem = "earth emerald";
+                    userGems[msg.sender][12]++;
+                } else if (gemNum < 185) {
+                    gem = "moss marble";
+                    userGems[msg.sender][13]++;
+                } else if (gemNum < 195) {
+                    gem = "cat's eye glint";
+                    userGems[msg.sender][14]++;
+                } else if (gemNum < 215) {
+                    gem = "jaded envy";
+                    userGems[msg.sender][15]++;
+                } else if (gemNum < 235) {
+                    gem = "pearl egg";
+                    userGems[msg.sender][16]++;
+                } else if (gemNum < 255) {
+                    gem = "terra tectonic";
+                    userGems[msg.sender][17]++;
+
+                // blue gems
+                } else if (gemNum < 260) {
+                    gem = "ocean sapphire";
+                    userGems[msg.sender][18]++;
+                } else if (gemNum < 270) {
+                    gem = "teardrop tower";
+                    userGems[msg.sender][19]++;
+                } else if (gemNum < 280) {
+                    gem = "sea stone";
+                    userGems[msg.sender][20]++;
+                } else if (gemNum < 300) {
+                    gem = "rainbow flower";
+                    userGems[msg.sender][21]++;
+                } else if (gemNum < 320) {
+                    gem = "river ripple";
+                    userGems[msg.sender][22]++;
+                } else if (gemNum < 340) {
+                    gem = "aqua orb";
+                    userGems[msg.sender][23]++;
+                }
+
+                // yellow gems
+                else if (gemNum < 345) {
+                    gem = "corona topaz";
+                    userGems[msg.sender][24]++;
+                } else if (gemNum < 355) {
+                    gem = "aurora rax";
+                    userGems[msg.sender][25]++;
+                } else if (gemNum < 365) {
+                    gem = "pyramid plunder";
+                    userGems[msg.sender][26]++;
+                } else if (gemNum < 385) {
+                    gem = "starlight shimmer";
+                    userGems[msg.sender][27]++;
+                } else if (gemNum < 405) {
+                    gem = "lemon drop";
+                    userGems[msg.sender][28]++;
+                } else if (gemNum < 425) {
+                    gem = "carat eclipse";
+                    userGems[msg.sender][29]++;
+                }
+
+                emit GemFound(msg.sender, gem);
+                break; // only 1 gem per game
+            }
+
+            // no gem
+        }
+        
+    }
+
+    // user can check amount of gems (have to use gem index)
+    function checkGemAmount(uint256 index) public returns (uint256) {
+        require(index < 6 && index >= 0, "Invalid index");
+        return userGems[msg.sender][index];
+    }
+
+    // user can sell gems at any time for kinzcash
+    function sellGem(uint256 index) public {
+        require(userGems[msg.sender][index] > 0, "You don't have that gem");
+
+        // check if uncommon
+        uint8[10] memory uncommonIndicies = [1, 2, 7, 8, 13, 14, 19, 20, 25, 26];
+        bool uncommon = false;
+        for (uint i=0; i<uncommonIndicies.length; i++) {
+            if (index == uncommonIndicies[i])
+                uncommon = true;
+        }
+
+        // remove gem & give kinzcash
+        if (index % 6 == 0) { // rare gem
+            userGems[msg.sender][index]--;
+            userKinzcash[msg.sender] += 100;
+        } else if (uncommon) { // uncommon gem
+            userGems[msg.sender][index]--;
+            userKinzcash[msg.sender] += 50;
+        } else { // common gem
+            userGems[msg.sender][index]--;
+            userKinzcash[msg.sender] += 15;
+        }
+    }
+
+    // user or redeem crown function can call, check if enough gems for crown
+    function checkCrown(address user) public returns (bool) {
+        for (uint i=0; i<6; i++) {
+            if (userGems[user][i] == 0)
+                return false;
+        }
+        return true;
+    }
+
+    // user can call to redeem
+    function redeemCrown() public {
+        require(checkCrown(msg.sender), "You don't have enough gems");
+
+        // remove gems
+        for (uint i=0; i<6; i++) {
+            userGems[msg.sender][i]--;
+        }
+
+        // give crown (idk if it should be nft)
+        // maybe should be a clothing item
+    }
+
 
     // **********************
     // ** friend functions **
