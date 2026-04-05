@@ -60,11 +60,15 @@ contract Web3Kinz {
         uint64 birthTime; // to give the pet a birthday
     }
 
-    // constructor
-    constructor() payable {
-        //
-        owner = msg.sender;
+    //stores information on each user
+    struct UserInfo {
+        uint256 balance; //amt of kinzcash
+        uint64 lastGemHunt; //time of last gem hunt
+        uint64 lastWheelOfWoW; //time of last wheel spin
+        uint64 lastWish; //time of last wish in wishing well
+        uint8 wishes;
     }
+
 
     // *************
     // ** storage **
@@ -76,12 +80,14 @@ contract Web3Kinz {
     mapping(uint32 => address) public petToOwner; // petID to owner address
     Pet[] public pets; // index = petID
 
-    mapping(address => uint256) public userKinzcash; // user to kinzcash amount
+    mapping(address => UserInfo) public users; //mapping of users and their information
+
+   //OLD MAPPING mapping(address => uint256) public userKinzcash; // user to kinzcash amount
 
     uint256 private nonce = 0; // used for random number generation
 
     // gem hunt
-    mapping(address => uint64) public lastGemHunt; // stores time of last gem hunt
+    //OLD MAPPING mapping(address => uint64) public lastGemHunt; // stores time of last gem hunt
     mapping(address => uint256[]) public userGems; // stores users' gems
 
     // mapping cooldown for each game - possibly - need to google
@@ -100,10 +106,10 @@ contract Web3Kinz {
     // mapping of user (key) to last play time (value) for wheelOfWow()
     // user = address = msg.sender
     // last play time = uint64 = block.timestamp
-    mapping(address => uint64) wheelOfWowTime;
+   //OLD MAPPING mapping(address => uint64) wheelOfWowTime;
 
     //Same as wheelOfWowTime but for wishing well game
-    mapping(address => uint64) wishingWellTime;
+   // mapping(address => uint64) wishingWellTime;
     // ***************
     // ** Events **
     // ***************
@@ -131,6 +137,19 @@ contract Web3Kinz {
         _;
     }
 
+    modifier hasPet(address addr) {
+        require(bytes(users[addr]).length > 0, "You need to adopt a pet first!!");
+        _;
+    }
+
+
+    // constructor
+    constructor() payable {
+        //
+        owner = msg.sender;
+    }
+
+
     // *******************
     // ** eth functions **
     // *******************
@@ -141,6 +160,10 @@ contract Web3Kinz {
         Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
+        if (bytes(users[addr]).length == 0) {
+            uint64 curtime = uint64(block.timestamp);
+            users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime, lastWheelOfWoW: curtime, lastWish: curtime, wishes: 5});
+        }
         petToOwner[petID] = msg.sender;
         pets.push(p);
 
@@ -150,7 +173,7 @@ contract Web3Kinz {
     // purchase KinzCash
     function buyKinzCash() public payable{
         uint256 bought = msg.value / 1000
-        userKinzcash(msg.sender) += bought;
+        users[msg.sender].balance += bought;
     }
 
     // ************************
@@ -177,6 +200,7 @@ contract Web3Kinz {
     // ** gameplay functions **
     // ************************
 
+    //TODO: modify to match new storage form
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
     function wheelOfWow() public {
         // check the time, ensure 24 hours has past since last play time
@@ -252,6 +276,7 @@ contract Web3Kinz {
         }
     }
 
+    //helper function for Wishing Well game
     function findResult(uint8 target) private returns (uint8) {
         //checks if is fruit
         if (target < 80) {
@@ -271,9 +296,14 @@ contract Web3Kinz {
     function wishingWell public {
 
            // check the time, ensure 24 hours has past since last play time
-        require(block.timestamp >= wishingWellTime[msg.sender] + 1 days, "You've used up all your wishes, come back tomorrow!");
+     
+        if (block.timestamp >= users[msg.sender].lastWish + 1 days){
         // update mapping to current time
-        wishingWellTime[msg.sender] = uint64(block.timestamp);
+        users[msg.sender].lastWish = uint64(block.timestamp);
+        users[msg.sender].wishes = 5;
+        }
+
+        require(users[msg.sender].wishes > 0, "You've run out of wishes, come back tomorrow!");
 
         uint16 prize = 0;
 
@@ -298,17 +328,46 @@ contract Web3Kinz {
 
                 if (col1 == col2) {
                     typematch = col1;
-                    matchCount++;
+                    matchcount++;
                 } 
                 if (col2 == col3) {
                     typematch = col2;
                     matchcount++;
                 }
                 
+                uint16 rowprize = 0;
+                if (matchcount == 2) {
+                    if (typematch < 4) {
+                        rowprize = 5;
+                    } else if (typematch < 8) {
+                        rowprize =10;
+                    } else {
+                        rowprize = 50;
+                    }
+                    //check type and dole out rewards
+                } else if (matchcount == 3) {
+                     if (typematch < 4) {
+                        rowprize = 35;
+                    } else if (typematch < 8) {
+                        rowprize = 100;
+                    } else {
+                        rowprize = 1000;
+                    }
+                    //check type and dole out rewards
+                } else if (matchcount == 1) {
+                    if (col1 == 8 || col2 == 8 || col3 == 8) {
+                        rowprize == 5;//check if there's a well;
+                    }
+                }
+
+                if (i == 1) {
+                    rowprize = rowprize * 3;
+                }
+                prize += rowprize;
         }
+        users[msg.sender].balance == prize;
     }
-    // yahtzee - requires user input?? - bonus points - once a day - receive berries
-    // berries have special function
+
 
     // gem hunt
     // gems are tracked as numbers in array, not nfts
