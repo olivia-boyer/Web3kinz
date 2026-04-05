@@ -102,6 +102,8 @@ contract Web3Kinz {
     // last play time = uint64 = block.timestamp
     mapping(address => uint64) wheelOfWowTime;
 
+    //Same as wheelOfWowTime but for wishing well game
+    mapping(address => uint64) wishingWellTime;
     // ***************
     // ** Events **
     // ***************
@@ -250,8 +252,61 @@ contract Web3Kinz {
         }
     }
 
-    // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
+    function findResult(uint8 target) private returns (uint8) {
+        //checks if is fruit
+        if (target < 80) {
+            //decide if fruit number 0-3
+            return target / 20;
+        }
+        //checks if is animal
+        if (target < 100) {
+            //decide if animal number 4-7
+            return 4 + ((target - 80) / 5);
+        }
+        //must be well
+        return 8;
+    }
 
+    // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
+    function wishingWell public {
+
+           // check the time, ensure 24 hours has past since last play time
+        require(block.timestamp >= wishingWellTime[msg.sender] + 1 days, "You've used up all your wishes, come back tomorrow!");
+        // update mapping to current time
+        wishingWellTime[msg.sender] = uint64(block.timestamp);
+
+        uint16 prize = 0;
+
+        for (int i = 0; i < 3; i++) {
+                //generate items randomly 
+                //9 options: 4 fruits, 4 animals; and one well
+                //odds of fruit: 19.8%; odds of animal: 5%; odds of well: 0.99%
+                uint8 col1 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
+                col1 = findResult(col1);
+                nonce++;
+                uint8 col2 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
+                col2 = findResult(col2);
+                nonce++;
+                uint8 col2 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
+                col3 = findResult(col3);
+                nonce++;
+
+                //type of item there was a match of
+                uint8 typematch = -1;
+                //max number of matching items
+                uint8 matchCount = 1;
+
+                if (col1 == col2) {
+                    typematch = col1;
+                    matchCount++;
+                } 
+                if (col2 == col3) {
+                    typematch = col2;
+                    matchcount++;
+                }
+                
+        }
+    }
     // yahtzee - requires user input?? - bonus points - once a day - receive berries
     // berries have special function
 
