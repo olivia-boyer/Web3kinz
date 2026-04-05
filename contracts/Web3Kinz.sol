@@ -108,7 +108,6 @@ contract Web3Kinz {
     // last play time = uint64 = block.timestamp
    //OLD MAPPING mapping(address => uint64) wheelOfWowTime;
 
-    //Same as wheelOfWowTime but for wishing well game
    // mapping(address => uint64) wishingWellTime;
     // ***************
     // ** Events **
@@ -204,9 +203,9 @@ contract Web3Kinz {
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
     function wheelOfWow() public {
         // check the time, ensure 24 hours has past since last play time
-        require(block.timestamp >= wheelOfWowTime[msg.sender] + 1 days, "24 hours have not yet passed!!");
+        require(block.timestamp >= users[msg.sender].lastWheelOfWoW + 1 days, "24 hours have not yet passed!!");
         // update mapping to current time
-        wheelOfWowTime[msg.sender] = uint64(block.timestamp);
+        users[msg.sender].lastWheelOfWoW = uint64(block.timestamp);
 
         // generate a random number
         uint256 wowValue = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 100;
@@ -238,7 +237,7 @@ contract Web3Kinz {
                 uint256 cashAmount = 20;
 
                 // add given amount to user's KinzCash balance
-                userKinzcash[msg.sender] += cashAmount;
+                users[msg.sender].balance += cashAmount;
             }
             // receive 50 KinzCash
             else if (wowValue < 70) {
@@ -246,7 +245,7 @@ contract Web3Kinz {
                 uint256 cashAmount = 50;
 
                 // add given amount to user's KinzCash balance
-                userKinzcash[msg.sender] += cashAmount;
+                users[msg.sender].balance += cashAmount;
             }
             // receive 100 KinzCash
             else if (wowValue < 80) {
@@ -254,7 +253,7 @@ contract Web3Kinz {
                 uint256 cashAmount = 100;
 
                 // add given amount to user's KinzCash balance
-                userKinzcash[msg.sender] += cashAmount;
+                users[msg.sender].balance += cashAmount;
             }
             // receive 500 KinzCash
             else if (wowValue < 90) {
@@ -262,7 +261,7 @@ contract Web3Kinz {
                 uint256 cashAmount = 500;
 
                 // add given amount to user's KinzCash balance
-                userKinzcash[msg.sender] += cashAmount;
+                users[msg.sender].balance += cashAmount;
             }
             // receive random amount of KinzCash between 20 and 500
             else if (wowValue < 100) {
@@ -271,7 +270,7 @@ contract Web3Kinz {
                 nonce++;
 
                 // add generate amount to user's KinzCash balance
-                userKinzcash[msg.sender] += cashAmount;
+                users[msg.sender].balance += cashAmount;
             }
         }
     }
@@ -373,10 +372,10 @@ contract Web3Kinz {
     // gems are tracked as numbers in array, not nfts
         function gemHunt() public {
         // check time
-        require(block.timestamp - lastGemHunt[msg.sender] >= 1 days, "Gem hunt can only be played once a day");
+        require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
 
         // update time
-        lastGemHunt[msg.sender] = uint64(block.timestamp);
+        users[msg.sender].lastGemHunt = uint64(block.timestamp);
 
         // for 3 tries
         for (int i=0; i<3; i++) {
@@ -534,13 +533,13 @@ contract Web3Kinz {
         // remove gem & give kinzcash
         if (index % 6 == 0) { // rare gem
             userGems[msg.sender][index]--;
-            userKinzcash[msg.sender] += 100;
+            users[msg.sender].balance += 100;
         } else if (uncommon) { // uncommon gem
             userGems[msg.sender][index]--;
-            userKinzcash[msg.sender] += 50;
+            users[msg.sender].balance += 50;
         } else { // common gem
             userGems[msg.sender][index]--;
-            userKinzcash[msg.sender] += 15;
+            users[msg.sender].balance += 15;
         }
     }
 
