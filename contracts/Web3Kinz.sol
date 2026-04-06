@@ -50,7 +50,8 @@ contract Web3Kinz {
         uint64 lastWheelOfWoW; //time of last wheel spin
         uint64 lastWish; //time of last wish in wishing well
         uint8 wishes;
-        Pet[] pets; // pets owned by user
+        bool exists;
+       // Pet[] pets; // pets owned by user
     }
 
 
@@ -121,7 +122,12 @@ contract Web3Kinz {
     }
 
     modifier hasPet(address addr) {
-        //require(bytes(users[addr]).length > 0, "You need to adopt a pet first!!");
+        require(users[addr].exists, "You need to adopt a pet first!!");
+        _;
+    }
+
+    modifier isPetOwner(uint32 petid) {
+    require(petToOwner[petid] == msg.sender);
         _;
     }
 
@@ -141,15 +147,16 @@ contract Web3Kinz {
     function adoptPet(uint32 petID, bytes32 petType, bytes32 petName) public {
         // create pet struct
         nft.safeMint(msg.sender);
-        //Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
+        Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, asleep: false, comatose: false,
+        petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
-        /*if (bytes(users[msg.sender]).length == 0) {
+        if (!users[msg.sender].exists) {
             uint64 curtime = uint64(block.timestamp);
-            users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime, lastWheelOfWoW: curtime, lastWish: curtime, wishes: 5});
-        }*/
+            users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime, lastWheelOfWoW: curtime, lastWish: curtime, wishes: 5, exists: true});
+        }
         petToOwner[petID] = msg.sender;
-        //pets.push(p);
+        pets.push(p);
     }
 
     // purchase KinzCash
