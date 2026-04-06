@@ -156,7 +156,7 @@ contract Web3Kinz {
         // assign pet to owner & store pet
         if (!users[msg.sender].exists) {
             uint64 curtime = uint64(block.timestamp);
-            users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime, lastWheelOfWoW: curtime, lastWish: curtime, wishes: 5, exists: true});
+            users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime - 1 days, lastWheelOfWoW: curtime - 1 days, lastWish: curtime - 1 days, wishes: 5, exists: true});
         }
         petToOwner[petId] = msg.sender;
         pets.push(p);
