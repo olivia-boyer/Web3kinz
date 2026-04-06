@@ -4,15 +4,14 @@ pragma solidity ^0.8.28;
 /// @title Base contract for Web3Kinz. Holds all common structs, events, and base variables.
 /// @author people
 interface NFT {
-    function safeMint(address) external;
+    function safeMint(address) external returns (uint256);
 }
 
 contract Web3Kinz {
     // insert variables here
 
-
-    NFT nft;
-
+    // for pet nft contract
+    NFT public nft;
 
     //owner
     address owner;
@@ -37,7 +36,7 @@ contract Web3Kinz {
         bool asleep;
         bool comatose;
         // pet information
-        uint32 petID; // unique pet id
+        uint256 petID; // unique pet id (from nft code)
         bytes32 petType; // pet type
         bytes32 petName; // pet name (this can be a bug)
         uint64 birthTime; // to give the pet a birthday
@@ -62,7 +61,7 @@ contract Web3Kinz {
     // mappings + arrays
 
     // general
-    mapping(uint32 => address) public petToOwner; // petID to owner address
+    mapping(uint256 => address) public petToOwner; // petID to owner address
     Pet[] public pets; // index = petID
 
     mapping(address => UserInfo) public users; //mapping of users and their information
@@ -133,9 +132,10 @@ contract Web3Kinz {
 
 
     // constructor
-    constructor() payable {
-        //
+    // deploy Web3kinzPet.sol first, get contract address, then pass into this contract
+    constructor(address _nftAddress) payable {
         owner = msg.sender;
+        nft = NFT(_nftAddress);
     }
 
 
@@ -144,18 +144,18 @@ contract Web3Kinz {
     // *******************
 
     // adoption
-    function adoptPet(uint32 petID, bytes32 petType, bytes32 petName) public {
+    function adoptPet(bytes32 petType, bytes32 petName) public {
         // create pet struct
-        nft.safeMint(msg.sender);
+        uint256 petId = nft.safeMint(msg.sender);
         Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, asleep: false, comatose: false,
-        petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
+        petID: petId, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
         if (!users[msg.sender].exists) {
             uint64 curtime = uint64(block.timestamp);
             users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime, lastWheelOfWoW: curtime, lastWish: curtime, wishes: 5, exists: true});
         }
-        petToOwner[petID] = msg.sender;
+        petToOwner[petId] = msg.sender;
         pets.push(p);
     }
 
@@ -508,7 +508,7 @@ contract Web3Kinz {
     }
 
     // user can check amount of gems (have to use gem index)
-    function checkGemAmount(uint256 index) public returns (uint256) {
+    function checkGemAmount(uint256 index) public view returns (uint256) {
         require(index < 6 && index >= 0, "Invalid index");
         return userGems[msg.sender][index];
     }
@@ -539,7 +539,7 @@ contract Web3Kinz {
     }
 
     // user or redeem crown function can call, check if enough gems for crown
-    function checkCrown(address user) public returns (bool) {
+    function checkCrown(address user) public view returns (bool) {
         for (uint i=0; i<6; i++) {
             if (userGems[user][i] == 0)
                 return false;

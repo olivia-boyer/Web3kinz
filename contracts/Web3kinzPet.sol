@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts ^5.6.0
+
+// Pet NFT contract
+// Must run npm install @openzeppelin/contracts to compile
 pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
