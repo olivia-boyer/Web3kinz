@@ -1,38 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-/// @title Interface for contracts conforming to ERC-721: Non-Fungible Tokens
-/// @author Dieter Shirley <dete@axiomzen.co> (https://github.com/dete) - from CryptoKitties.
-contract ERC721 {
-    // Required methods
-    function totalSupply() public view returns (uint256 total);
-    function balanceOf(address _owner) public view returns (uint256 balance);
-    function ownerOf(uint256 _tokenId) external view returns (address owner);
-    function approve(address _to, uint256 _tokenId) external;
-    function transfer(address _to, uint256 _tokenId) external;
-    function transferFrom(address _from, address _to, uint256 _tokenId) external;
-
-    // Events
-    event Transfer(address from, address to, uint256 tokenId);
-    event Approval(address owner, address approved, uint256 tokenId);
-
-    // Optional
-    // function name() public view returns (string name);
-    // function symbol() public view returns (string symbol);
-    // function tokensOfOwner(address _owner) external view returns (uint256[] tokenIds);
-    // function tokenMetadata(uint256 _tokenId, string _preferredTransport) public view returns (string infoUrl);
-
-    // ERC-165 Compatibility (https://github.com/ethereum/EIPs/issues/165)
-    function supportsInterface(bytes4 _interfaceID) external view returns (bool);
-}
-
 /// @title Base contract for Web3Kinz. Holds all common structs, events, and base variables.
 /// @author people
+interface NFT {
+    function safeMint(address) external;
+}
+
 contract Web3Kinz {
     // insert variables here
 
+
+    NFT nft;
+
+
     //owner
-    adress owner;
+    address owner;
 
     // global variable for total amount of food items
     uint256 gameFoodCount = 100;
@@ -67,6 +50,7 @@ contract Web3Kinz {
         uint64 lastWheelOfWoW; //time of last wheel spin
         uint64 lastWish; //time of last wish in wishing well
         uint8 wishes;
+        Pet[] pets; // pets owned by user
     }
 
 
@@ -96,12 +80,12 @@ contract Web3Kinz {
 
     // array of food
     // directory of all food types available in the game
-    bytes2[gameFoodCount] public gameFoodDirectory;
+    uint256[100] public gameFoodDirectory;
 
     // mapping of user (key) to amount of each food (value) the user has in their inventory
     // user = address = msg.sender
     // amount of each food = uint256[]
-    mapping(address => uint256[gameFoodCount]) userFoodCount;
+    mapping(address => uint256[100]) userFoodCount;
 
     // mapping of user (key) to last play time (value) for wheelOfWow()
     // user = address = msg.sender
@@ -125,19 +109,19 @@ contract Web3Kinz {
     }
 
     // modifier isSleeping - cannot play games when pet is sleeping
-    modifier isAwake(Pet target) {
+    modifier isAwake(Pet memory target) {
         require(target.asleep == false, "Your pet is asleep. Wake them up!");
         _;
     }
 
     //check if pet is comatose
-    modifier notComatose(Pet target) {
+    modifier notComatose(Pet memory target) {
         require(target.comatose == false, "Your pet is comatose. Take them to the vet!!");
         _;
     }
 
     modifier hasPet(address addr) {
-        require(bytes(users[addr]).length > 0, "You need to adopt a pet first!!");
+        //require(bytes(users[addr]).length > 0, "You need to adopt a pet first!!");
         _;
     }
 
@@ -156,22 +140,21 @@ contract Web3Kinz {
     // adoption
     function adoptPet(uint32 petID, bytes32 petType, bytes32 petName) public {
         // create pet struct
-        Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
+        nft.safeMint(msg.sender);
+        //Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, petID: petID, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
-        if (bytes(users[addr]).length == 0) {
+        /*if (bytes(users[msg.sender]).length == 0) {
             uint64 curtime = uint64(block.timestamp);
             users[msg.sender] = UserInfo({balance: 0, lastGemHunt: curtime, lastWheelOfWoW: curtime, lastWish: curtime, wishes: 5});
-        }
+        }*/
         petToOwner[petID] = msg.sender;
-        pets.push(p);
-
-        // figure out how to actually mint the pet as an NFT later
+        //pets.push(p);
     }
 
     // purchase KinzCash
     function buyKinzCash() public payable{
-        uint256 bought = msg.value / 1000
+        uint256 bought = msg.value / 1000;
         users[msg.sender].balance += bought;
     }
 
@@ -292,7 +275,7 @@ contract Web3Kinz {
     }
 
     // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
-    function wishingWell public {
+   /*function wishingWell() public {
 
            // check the time, ensure 24 hours has past since last play time
      
@@ -310,32 +293,32 @@ contract Web3Kinz {
                 //generate items randomly 
                 //9 options: 4 fruits, 4 animals; and one well
                 //odds of fruit: 19.8%; odds of animal: 5%; odds of well: 0.99%
-                uint8 col1 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
-                col1 = findResult(col1);
+                //uint8 col1 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
+                //col1 = findResult(col1);
                 nonce++;
-                uint8 col2 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
-                col2 = findResult(col2);
+                //uint8 col2 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
+                //col2 = findResult(col2);
                 nonce++;
-                uint8 col2 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
-                col3 = findResult(col3);
+                //uint8 col3 = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101;
+                //col3 = findResult(col3);
                 nonce++;
 
                 //type of item there was a match of
-                uint8 typematch = -1;
+                //uint8 typematch = -1;
                 //max number of matching items
                 uint8 matchCount = 1;
 
-                if (col1 == col2) {
+                /*if (col1 == col2) {
                     typematch = col1;
-                    matchcount++;
+                    matchCount++;
                 } 
                 if (col2 == col3) {
                     typematch = col2;
-                    matchcount++;
-                }
+                    matchCount++;
+                }*/
                 
-                uint16 rowprize = 0;
-                if (matchcount == 2) {
+                //uint16 rowprize = 0;
+                /*if (matchCount == 2) {
                     if (typematch < 4) {
                         rowprize = 5;
                     } else if (typematch < 8) {
@@ -344,7 +327,7 @@ contract Web3Kinz {
                         rowprize = 50;
                     }
                     //check type and dole out rewards
-                } else if (matchcount == 3) {
+                } else if (matchCount == 3) {
                      if (typematch < 4) {
                         rowprize = 35;
                     } else if (typematch < 8) {
@@ -353,8 +336,8 @@ contract Web3Kinz {
                         rowprize = 1000;
                     }
                     //check type and dole out rewards
-                } else if (matchcount == 1) {
-                    if (col1 == 8 || col2 == 8 || col3 == 8) {
+                } else if (matchCount == 1) {
+                    /*if (col1 == 8 || col2 == 8 || col3 == 8) {
                         rowprize == 5;//check if there's a well;
                     }
                 }
@@ -365,7 +348,7 @@ contract Web3Kinz {
                 prize += rowprize;
         }
         users[msg.sender].balance == prize;
-    }
+    }*/
 
 
     // gem hunt
