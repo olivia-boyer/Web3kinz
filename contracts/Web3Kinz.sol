@@ -144,7 +144,10 @@ contract Web3Kinz {
     // *******************
 
     // adoption
-    function adoptPet(bytes32 petType, bytes32 petName) public {
+    function adoptPet(bytes32 petType, bytes32 petName) public payable {
+        // payment
+        require(msg.value >= 0.01 ether, "Adopting a pet costs 0.01 eth"); // idk what price we want
+
         // create pet struct
         uint256 petId = nft.safeMint(msg.sender);
         Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, asleep: false, comatose: false,
