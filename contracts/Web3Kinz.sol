@@ -8,7 +8,44 @@ interface NFT {
 }
 
 contract Web3Kinz {
-    // insert variables here
+
+    // *************
+    // ** structs **
+    // *************
+
+      /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
+    ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
+    //modifications for additional data storage, not exactly 256
+    struct Pet {
+        // pet needs
+        uint16 hunger;
+        uint16 happiness;
+        uint32 sleeptime;
+        //pet status
+        bool asleep;
+        bool comatose;
+        // pet information
+        uint256 petID; // unique pet id (from nft code)
+        bytes32 petType; // pet type
+        bytes32 petName; // pet name (this can be a bug)
+        uint64 birthTime; // to give the pet a birthday
+    }
+
+    //stores information on each user
+    struct UserInfo {
+        uint256 balance; //ammount of kinzcash
+        //times reset after 24 hours
+        uint64 lastGemHunt; //time of last gem hunt
+        uint64 lastWheelOfWoW; //time of last wheel spin
+        uint64 lastWish; //time of last wish in wishing well
+        uint8 wishes; //number of daily wishes left
+        bool exists; //used for checking if user in users mapping
+       // Pet[] pets; // pets owned by user
+    }
+
+    // *************
+    // ** storage **
+    // *************
 
     // for pet nft contract
     NFT public nft;
@@ -25,38 +62,8 @@ contract Web3Kinz {
     // global variable for total amount of clothing items
     uint256 gameClothingCount = 100;
 
-    /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
-    ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
-    //modifications for additional data storage, not exactly 256
-    struct Pet {
-        // pet needs
-        uint16 hunger;
-        uint16 happiness;
-        uint16 sleep;
-        bool asleep;
-        bool comatose;
-        // pet information
-        uint256 petID; // unique pet id (from nft code)
-        bytes32 petType; // pet type
-        bytes32 petName; // pet name (this can be a bug)
-        uint64 birthTime; // to give the pet a birthday
-    }
-
-    //stores information on each user
-    struct UserInfo {
-        uint256 balance; //amt of kinzcash
-        uint64 lastGemHunt; //time of last gem hunt
-        uint64 lastWheelOfWoW; //time of last wheel spin
-        uint64 lastWish; //time of last wish in wishing well
-        uint8 wishes;
-        bool exists;
-       // Pet[] pets; // pets owned by user
-    }
 
 
-    // *************
-    // ** storage **
-    // *************
 
     // mappings + arrays
 
@@ -66,12 +73,8 @@ contract Web3Kinz {
 
     mapping(address => UserInfo) public users; //mapping of users and their information
 
-   //OLD MAPPING mapping(address => uint256) public userKinzcash; // user to kinzcash amount
-
     uint256 private nonce = 0; // used for random number generation
 
-    // gem hunt
-    //OLD MAPPING mapping(address => uint64) public lastGemHunt; // stores time of last gem hunt
     mapping(address => uint256[]) public userGems; // stores users' gems
 
     // mapping cooldown for each game - possibly - need to google
@@ -120,11 +123,14 @@ contract Web3Kinz {
         _;
     }
 
+    //check if sender had adopted a pet
+    //needed to play games
     modifier hasPet(address addr) {
         require(users[addr].exists, "You need to adopt a pet first!!");
         _;
     }
 
+    //check if sender is the owner of the pet they are interacting with
     modifier isPetOwner(uint32 petid) {
     require(petToOwner[petid] == msg.sender);
         _;
@@ -150,7 +156,7 @@ contract Web3Kinz {
 
         // create pet struct
         uint256 petId = nft.safeMint(msg.sender);
-        Pet memory p = Pet({hunger: 100, happiness: 100, sleep: 100, asleep: false, comatose: false,
+        Pet memory p = Pet({hunger: 100, happiness: 100, sleeptime: 100, asleep: false, comatose: false,
         petID: petId, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
@@ -164,6 +170,7 @@ contract Web3Kinz {
 
     // purchase KinzCash
     function buyKinzCash() public payable{
+        //1 kinzCash == 1000 wei
         uint256 bought = msg.value / 1000;
         users[msg.sender].balance += bought;
     }
@@ -183,6 +190,18 @@ contract Web3Kinz {
     // ************************
 
     // put pet to bed
+    function naptime(uint32 petid) isPetOwner(petid) public {
+        require(!pets[petid].asleep, "Your pet is already sleeping!");
+        pets[petid].asleep = true;
+        //update sleeptime
+    }
+
+    //wake pet up
+       function wakeup(uint32 petid) isPetOwner(petid) public {
+        require(pets[petid].asleep, "Your pet is already awake!");
+        pets[petid].asleep = false;
+        //update wake time 
+    }
 
     // feed pet
 
@@ -269,6 +288,8 @@ contract Web3Kinz {
     }
 
     //helper function for Wishing Well game
+    //converts random number to a value from 0-8
+    //representing the 9 possible icons rolled
     function findResult(uint8 target) private returns (uint8) {
         //checks if is fruit
         if (target < 80) {
@@ -304,9 +325,10 @@ contract Web3Kinz {
         uint8 typematch;
         uint8 matchCount;
         uint16 rowprize;
+        //there are three rows
         for (int i = 0; i < 3; i++) {
                 //generate items randomly 
-                //9 options: 4 fruits, 4 animals; and one well
+                //9 options: 4 fruits, 4 animals; and 1 well
                 //odds of fruit: 19.8%; odds of animal: 5%; odds of well: 0.99%
                 col1 = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101);
                 col1 = findResult(col1);
@@ -319,7 +341,7 @@ contract Web3Kinz {
                 nonce++;
 
                 //type of item there was a match of
-                typematch = 27;
+                typematch = 27; //random number outside of range of item numbers
                 //max number of matching items
                 matchCount = 1;
 
@@ -334,35 +356,42 @@ contract Web3Kinz {
                 
                 rowprize = 0;
                 if (matchCount == 2) {
+                    //fruit
                     if (typematch < 4) {
                         rowprize = 5;
+                    //animal
                     } else if (typematch < 8) {
                         rowprize =10;
                     } else {
+                    //well
                         rowprize = 50;
                     }
                     //check type and dole out rewards
                 } else if (matchCount == 3) {
+                    //fruit
                      if (typematch < 4) {
                         rowprize = 35;
+                    //animal
                     } else if (typematch < 8) {
                         rowprize = 100;
+                    //well
                     } else {
                         rowprize = 1000;
                     }
-                    //check type and dole out rewards
+                    //check if there is a single well
                 } else if (matchCount == 1) {
                     if (col1 == 8 || col2 == 8 || col3 == 8) {
-                        rowprize == 5;//check if there's a well;
+                        rowprize == 5;
                     }
                 }
-
+                //the prize for the middle row is tripled
                 if (i == 1) {
                     rowprize = rowprize * 3;
                 }
                 prize += rowprize;
         }
-        users[msg.sender].balance == prize;
+        users[msg.sender].wishes -= 1; //decrement daily wish count before cashout
+        users[msg.sender].balance += prize; //add prize money to user balance
     }
 
 
