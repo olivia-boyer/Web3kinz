@@ -7,6 +7,13 @@ interface NFT {
     function safeMint(address) external returns (uint256);
 }
 
+//Clothing NFT Interface
+//includes uint8 parameter for selecting type of clothing item
+interface CNFT {
+    function safeMint(address, uint8) external returns (uint256);
+}
+
+
 contract Web3Kinz {
 
     // *************
@@ -20,7 +27,7 @@ contract Web3Kinz {
         // pet needs
         uint16 hunger;
         uint16 happiness;
-        uint8 sleeplevel;
+        uint8 sleeplevel; //out of 100
         //for calculating sleeplevel
         //same variable for sleeping time and wake-time
         //usage depends on asleep bool
@@ -53,7 +60,7 @@ contract Web3Kinz {
 
     // for pet nft contract
     NFT public nft;
-    NFT public clothing;
+    CNFT public clothing;
 
     //owner
     address owner;
@@ -147,7 +154,7 @@ contract Web3Kinz {
     constructor(address _nftAddress, address _clothaddr) payable {
         owner = msg.sender;
         nft = NFT(_nftAddress);
-        clothing = NFT(_clothaddr);
+        clothing = CNFT(_clothaddr);
     }
 
 
@@ -189,11 +196,13 @@ contract Web3Kinz {
     // purchase furniture - furniture is NFT
     
     // purchase pet clothing - clothing is NFT
-    //if add uri- include uint8 parameter to select clothing style
-    //don't need to store all clothing items
-    function purchaseClothing() public payable {
-        require(msg.value >= 0.001 ether, "clothing items cose 0.001 eth");
-        clothing.safeMint(msg.sender);
+    // kind: type of clothing to purchase 
+    function purchaseClothing(uint8 kind) public payable {
+        //there are only 100 clothing items
+        require(kind < 100, "Clothing type does not exist.");
+        require(users[msg.sender].balance > 100, "clothing items cost 100 kinzcash");
+        users[msg.sender].balance -= 100;
+        clothing.safeMint(msg.sender, kind);
     }
 
     // purchase pet food - food is ERC20
@@ -201,14 +210,7 @@ contract Web3Kinz {
     // ************************
     // ** pet care functions **
     // ************************
-/*
-    function getabs(int256 target) private returns (int256) {
-            if (target < 0) {
-                return -target;
-            }
-            return target;
-    }
-    */
+
     // put pet to bed
     function naptime(uint32 petid) isPetOwner(petid) public {
         require(!pets[petid].asleep, "Your pet is already sleeping!");
@@ -366,9 +368,11 @@ contract Web3Kinz {
                 col1 = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101);
                 col1 = findResult(col1);
                 nonce++;
+
                 col2 = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101);
                 col2 = findResult(col2);
                 nonce++;
+
                 col3 = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 101);
                 col3 = findResult(col3);
                 nonce++;
@@ -382,45 +386,57 @@ contract Web3Kinz {
                     typematch = col1;
                     matchCount++;
                 } 
+
                 if (col2 == col3) {
                     typematch = col2;
                     matchCount++;
                 }
                 
                 rowprize = 0;
+
                 if (matchCount == 2) {
                     //fruit
                     if (typematch < 4) {
+
                         rowprize = 5;
                     //animal
                     } else if (typematch < 8) {
+
                         rowprize =10;
                     } else {
                     //well
                         rowprize = 50;
                     }
+
                     //check type and dole out rewards
                 } else if (matchCount == 3) {
                     //fruit
                      if (typematch < 4) {
+
                         rowprize = 35;
                     //animal
                     } else if (typematch < 8) {
+
                         rowprize = 100;
                     //well
                     } else {
+
                         rowprize = 1000;
                     }
                     //check if there is a single well
                 } else if (matchCount == 1) {
+
                     if (col1 == 8 || col2 == 8 || col3 == 8) {
+
                         rowprize == 5;
                     }
                 }
                 //the prize for the middle row is tripled
                 if (i == 1) {
+
                     rowprize = rowprize * 3;
                 }
+
                 prize += rowprize;
         }
         users[msg.sender].wishes -= 1; //decrement daily wish count before cashout

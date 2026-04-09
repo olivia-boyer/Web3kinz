@@ -1,0 +1,19 @@
+{
+  "attributes": [
+    {
+      "trait_type": "type",
+      "value": "clothing"
+    },
+    {
+      "trait_type": "article",
+      "value": "shirt"
+    },
+    {
+        "trait_type": "style",
+        "value": "1"
+    }
+  ],
+  "description": "Web3kinz start tshirt",
+  "image": "ipfs://bafkreidphpneqdygvcgiz6ndqdrcbabtf7meyzwvp2nv7fpf27m4dylwli",
+  "name": "starshirt"
+}
