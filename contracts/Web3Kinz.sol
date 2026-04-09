@@ -20,6 +20,10 @@ contract Web3Kinz {
         // pet needs
         uint16 hunger;
         uint16 happiness;
+        uint8 sleeplevel;
+        //for calculating sleeplevel
+        //same variable for sleeping time and wake-time
+        //usage depends on asleep bool
         uint32 sleeptime;
         //pet status
         bool asleep;
@@ -49,6 +53,7 @@ contract Web3Kinz {
 
     // for pet nft contract
     NFT public nft;
+    NFT public clothing;
 
     //owner
     address owner;
@@ -139,9 +144,10 @@ contract Web3Kinz {
 
     // constructor
     // deploy Web3kinzPet.sol first, get contract address, then pass into this contract
-    constructor(address _nftAddress) payable {
+    constructor(address _nftAddress, address _clothaddr) payable {
         owner = msg.sender;
         nft = NFT(_nftAddress);
+        clothing = NFT(_clothaddr);
     }
 
 
@@ -156,8 +162,9 @@ contract Web3Kinz {
 
         // create pet struct
         uint256 petId = nft.safeMint(msg.sender);
-        Pet memory p = Pet({hunger: 100, happiness: 100, sleeptime: 100, asleep: false, comatose: false,
-        petID: petId, petType: petType, petName: petName, birthTime: uint64(block.timestamp)});
+        Pet memory p = Pet({hunger: 100, happiness: 100, sleeplevel: 100, sleeptime: uint32(block.timestamp), 
+        asleep: false, comatose: false, petID: petId, petType: petType, petName: petName, 
+        birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
         if (!users[msg.sender].exists) {
@@ -182,25 +189,51 @@ contract Web3Kinz {
     // purchase furniture - furniture is NFT
     
     // purchase pet clothing - clothing is NFT
+    //if add uri- include uint8 parameter to select clothing style
+    //don't need to store all clothing items
+    function purchaseClothing() public payable {
+        require(msg.value >= 0.001 ether, "clothing items cose 0.001 eth");
+        clothing.safeMint(msg.sender);
+    }
 
     // purchase pet food - food is ERC20
 
     // ************************
     // ** pet care functions **
     // ************************
-
+/*
+    function getabs(int256 target) private returns (int256) {
+            if (target < 0) {
+                return -target;
+            }
+            return target;
+    }
+    */
     // put pet to bed
     function naptime(uint32 petid) isPetOwner(petid) public {
         require(!pets[petid].asleep, "Your pet is already sleeping!");
         pets[petid].asleep = true;
         //update sleeptime
+        pets[petid].sleeptime = uint32(block.timestamp);
     }
 
     //wake pet up
        function wakeup(uint32 petid) isPetOwner(petid) public {
         require(pets[petid].asleep, "Your pet is already awake!");
         pets[petid].asleep = false;
-        //update wake time 
+       //full sleep is a little under 8 hours, regain sleep level at rate of 13 per hour
+        uint32 addup = ((uint32(block.timestamp) - pets[petid].sleeptime)/3600)*13;
+        //maximum sleep level is 100
+        if (addup > 100) {
+            addup = 100;
+        }
+        if (addup + pets[petid].sleeplevel > 100) {
+            pets[petid].sleeplevel = 100;
+        } else {
+            pets[petid].sleeplevel += uint8(addup);
+        }
+        //update wake time
+        pets[petid].sleeptime = uint32(block.timestamp); 
     }
 
     // feed pet
@@ -290,7 +323,7 @@ contract Web3Kinz {
     //helper function for Wishing Well game
     //converts random number to a value from 0-8
     //representing the 9 possible icons rolled
-    function findResult(uint8 target) private returns (uint8) {
+    function findResult(uint8 target) private pure returns (uint8) {
         //checks if is fruit
         if (target < 80) {
             //decide if fruit number 0-3
