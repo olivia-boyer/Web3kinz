@@ -211,6 +211,28 @@ contract Web3Kinz {
     // ** pet care functions **
     // ************************
 
+    //
+    function checkStats(uint32 petid) isPetOwner(petid) public returns (uint8) {
+        uint32 timedif = ((uint32(block.timestamp) - pets[petid].sleeptime) / 3600) * 13;
+        if (timedif > 100) {
+            timedif = 100;
+        }
+
+        if (pets[petid].asleep) {
+            pets[petid].sleeplevel += uint8(timedif);
+            if (pets[petid].sleeplevel > 100) {
+                pets[petid].sleeplevel = 100;
+            }
+        } else {
+            if (pets[petid].sleeplevel < uint8(timedif)) {
+                timedif = pets[petid].sleeplevel;
+            }
+            pets[petid].sleeplevel -= uint8(timedif);
+        }
+
+        return pets[petid].sleeplevel;
+    }
+
     // put pet to bed
     function naptime(uint32 petid) isPetOwner(petid) public {
         require(!pets[petid].asleep, "Your pet is already sleeping!");
