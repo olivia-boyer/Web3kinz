@@ -13,6 +13,12 @@ interface CNFT {
     function safeMint(address, uint8) external returns (uint256);
 }
 
+//Food Token Interface
+// amount parameter = number of food items minted (1 food item = 1 hunger point)
+interface FT {
+    function mint(address to, uint256 amount) external;
+}
+
 
 contract Web3Kinz {
 
@@ -59,8 +65,9 @@ contract Web3Kinz {
     // *************
 
     // for pet nft contract
-    NFT public nft;
+    NFT public nftPet;
     CNFT public clothing;
+    FT public food;
 
     //owner
     address owner;
@@ -150,11 +157,12 @@ contract Web3Kinz {
 
 
     // constructor
-    // deploy Web3kinzPet.sol first, get contract address, then pass into this contract
-    constructor(address _nftAddress, address _clothaddr) payable {
+    // deploy nft contracts first, get contract address, then pass into constructor for main contract
+    constructor(address _nftAddress, address _clothaddr, address _foodaddr) payable {
         owner = msg.sender;
-        nft = NFT(_nftAddress);
+        nftPet = NFT(_nftAddress);
         clothing = CNFT(_clothaddr);
+        food = FT(_foodaddr);
     }
 
 
@@ -167,8 +175,10 @@ contract Web3Kinz {
         // payment
         require(msg.value >= 0.01 ether, "Adopting a pet costs 0.01 eth"); // idk what price we want
 
-        // create pet struct
-        uint256 petId = nft.safeMint(msg.sender);
+       // mint pet nft
+        uint256 petId = nftPet.safeMint(msg.sender);
+
+         // create pet struct
         Pet memory p = Pet({hunger: 100, happiness: 100, sleeplevel: 100, sleeptime: uint32(block.timestamp), 
         asleep: false, comatose: false, petID: petId, petType: petType, petName: petName, 
         birthTime: uint64(block.timestamp)});
@@ -197,7 +207,7 @@ contract Web3Kinz {
     
     // purchase pet clothing - clothing is NFT
     // kind: type of clothing to purchase 
-    function purchaseClothing(uint8 kind) public payable {
+    function purchaseClothing(uint8 kind) public {
         //there are only 100 clothing items
         require(kind < 100, "Clothing type does not exist.");
         require(users[msg.sender].balance > 100, "clothing items cost 100 kinzcash");
@@ -206,6 +216,18 @@ contract Web3Kinz {
     }
 
     // purchase pet food - food is ERC20
+    function purchaseFood(uint256 amount) public {
+        // check balance
+        // price of food is 2 kinzcash per hunger point (maybe change)
+        require(users[msg.sender].balance > amount * 2, "Not enough kinzcash");
+        require(amount > 0, "Must purchase at least 1 food item");
+
+        // update balance
+        users[msg.sender].balance -= amount * 2;
+
+        // mint food
+        food.mint(msg.sender, amount);
+    }
 
     // ************************
     // ** pet care functions **
@@ -466,148 +488,149 @@ contract Web3Kinz {
     }
 
 
-    // gem hunt
-    // gems are tracked as numbers in array, not nfts
-        function gemHunt() public {
-        // check time
-        require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
+    // gem hunt game
+    // user gets 3 tries to find a gem
+    // can play once per day
+    // (gems are tracked as numbers in array, not nfts)
+        function gemHunt() public hasPet(msg.sender) {
+            // check time
+            require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
 
-        // update time
-        users[msg.sender].lastGemHunt = uint64(block.timestamp);
+            // update time
+            users[msg.sender].lastGemHunt = uint64(block.timestamp);
 
-        // for 3 tries
-        for (int i=0; i<3; i++) {
-            // generate random number
-            uint256 randomNumber = uint256(keccak256(abi.encodePacked(
-                block.timestamp, 
-                msg.sender, 
-                nonce
-            )));
-            nonce++;
-
-            // got gem
-            if ((randomNumber % 100) < 50) {
-                string memory gem;
-
-                // randomly choose gem (weighted by rarity)
-                uint256 randomNumber2 = uint256(keccak256(abi.encodePacked(
+            // for 3 tries
+            for (int i=0; i<3; i++) {
+                // generate random number
+                uint256 randomNumber = uint256(keccak256(abi.encodePacked(
                     block.timestamp, 
                     msg.sender, 
                     nonce
                 )));
                 nonce++;
-                
-                uint256 gemNum = randomNumber2 % 425;
 
-                // white gems
-                if (gemNum < 5) {
-                    gem = "webkinz diamond";
-                    userGems[msg.sender][0]++;
-                } else if (gemNum < 15) {
-                    gem = "unicorn horn";
-                    userGems[msg.sender][1]++;
-                } else if (gemNum < 25) {
-                    gem = "yum zum sparkle";
-                    userGems[msg.sender][2]++;
-                } else if (gemNum < 45) {
-                    gem = "zingos zincoz";
-                    userGems[msg.sender][3]++;
-                } else if (gemNum < 65) {
-                    gem = "goober glitter";
-                    userGems[msg.sender][4]++;
-                } else if (gemNum < 85) {
-                    gem = "booger nugget";
-                    userGems[msg.sender][5]++;
+                // got gem
+                if ((randomNumber % 100) < 50) {
+                    string memory gem;
 
-                // red gems
-                } else if (gemNum < 90) {
-                    gem = "red ruby heart";
-                    userGems[msg.sender][6]++;
-                } else if (gemNum < 100) {
-                    gem = "ember amber";
-                    userGems[msg.sender][7]++;
-                } else if (gemNum < 110) {
-                    gem = "volcano viscose";
-                    userGems[msg.sender][8]++;
-                } else if (gemNum < 130) {
-                    gem = "flare fyca";
-                    userGems[msg.sender][9]++;
-                } else if (gemNum < 150) {
-                    gem = "torch treasure";
-                    userGems[msg.sender][10]++;
-                } else if (gemNum < 170) {
-                    gem = "lava lamp";
-                    userGems[msg.sender][11]++;
+                    // randomly choose gem (weighted by rarity)
+                    uint256 randomNumber2 = uint256(keccak256(abi.encodePacked(
+                        block.timestamp, 
+                        msg.sender, 
+                        nonce
+                    )));
+                    nonce++;
+                    
+                    uint256 gemNum = randomNumber2 % 425;
 
-                // green gems
-                } else if (gemNum < 175) {
-                    gem = "earth emerald";
-                    userGems[msg.sender][12]++;
-                } else if (gemNum < 185) {
-                    gem = "moss marble";
-                    userGems[msg.sender][13]++;
-                } else if (gemNum < 195) {
-                    gem = "cat's eye glint";
-                    userGems[msg.sender][14]++;
-                } else if (gemNum < 215) {
-                    gem = "jaded envy";
-                    userGems[msg.sender][15]++;
-                } else if (gemNum < 235) {
-                    gem = "pearl egg";
-                    userGems[msg.sender][16]++;
-                } else if (gemNum < 255) {
-                    gem = "terra tectonic";
-                    userGems[msg.sender][17]++;
+                    // white gems
+                    if (gemNum < 5) {
+                        gem = "webkinz diamond";
+                        userGems[msg.sender][0]++;
+                    } else if (gemNum < 15) {
+                        gem = "unicorn horn";
+                        userGems[msg.sender][1]++;
+                    } else if (gemNum < 25) {
+                        gem = "yum zum sparkle";
+                        userGems[msg.sender][2]++;
+                    } else if (gemNum < 45) {
+                        gem = "zingos zincoz";
+                        userGems[msg.sender][3]++;
+                    } else if (gemNum < 65) {
+                        gem = "goober glitter";
+                        userGems[msg.sender][4]++;
+                    } else if (gemNum < 85) {
+                        gem = "booger nugget";
+                        userGems[msg.sender][5]++;
 
-                // blue gems
-                } else if (gemNum < 260) {
-                    gem = "ocean sapphire";
-                    userGems[msg.sender][18]++;
-                } else if (gemNum < 270) {
-                    gem = "teardrop tower";
-                    userGems[msg.sender][19]++;
-                } else if (gemNum < 280) {
-                    gem = "sea stone";
-                    userGems[msg.sender][20]++;
-                } else if (gemNum < 300) {
-                    gem = "rainbow flower";
-                    userGems[msg.sender][21]++;
-                } else if (gemNum < 320) {
-                    gem = "river ripple";
-                    userGems[msg.sender][22]++;
-                } else if (gemNum < 340) {
-                    gem = "aqua orb";
-                    userGems[msg.sender][23]++;
+                    // red gems
+                    } else if (gemNum < 90) {
+                        gem = "red ruby heart";
+                        userGems[msg.sender][6]++;
+                    } else if (gemNum < 100) {
+                        gem = "ember amber";
+                        userGems[msg.sender][7]++;
+                    } else if (gemNum < 110) {
+                        gem = "volcano viscose";
+                        userGems[msg.sender][8]++;
+                    } else if (gemNum < 130) {
+                        gem = "flare fyca";
+                        userGems[msg.sender][9]++;
+                    } else if (gemNum < 150) {
+                        gem = "torch treasure";
+                        userGems[msg.sender][10]++;
+                    } else if (gemNum < 170) {
+                        gem = "lava lamp";
+                        userGems[msg.sender][11]++;
+
+                    // green gems
+                    } else if (gemNum < 175) {
+                        gem = "earth emerald";
+                        userGems[msg.sender][12]++;
+                    } else if (gemNum < 185) {
+                        gem = "moss marble";
+                        userGems[msg.sender][13]++;
+                    } else if (gemNum < 195) {
+                        gem = "cat's eye glint";
+                        userGems[msg.sender][14]++;
+                    } else if (gemNum < 215) {
+                        gem = "jaded envy";
+                        userGems[msg.sender][15]++;
+                    } else if (gemNum < 235) {
+                        gem = "pearl egg";
+                        userGems[msg.sender][16]++;
+                    } else if (gemNum < 255) {
+                        gem = "terra tectonic";
+                        userGems[msg.sender][17]++;
+
+                    // blue gems
+                    } else if (gemNum < 260) {
+                        gem = "ocean sapphire";
+                        userGems[msg.sender][18]++;
+                    } else if (gemNum < 270) {
+                        gem = "teardrop tower";
+                        userGems[msg.sender][19]++;
+                    } else if (gemNum < 280) {
+                        gem = "sea stone";
+                        userGems[msg.sender][20]++;
+                    } else if (gemNum < 300) {
+                        gem = "rainbow flower";
+                        userGems[msg.sender][21]++;
+                    } else if (gemNum < 320) {
+                        gem = "river ripple";
+                        userGems[msg.sender][22]++;
+                    } else if (gemNum < 340) {
+                        gem = "aqua orb";
+                        userGems[msg.sender][23]++;
+                    }
+
+                    // yellow gems
+                    else if (gemNum < 345) {
+                        gem = "corona topaz";
+                        userGems[msg.sender][24]++;
+                    } else if (gemNum < 355) {
+                        gem = "aurora rax";
+                        userGems[msg.sender][25]++;
+                    } else if (gemNum < 365) {
+                        gem = "pyramid plunder";
+                        userGems[msg.sender][26]++;
+                    } else if (gemNum < 385) {
+                        gem = "starlight shimmer";
+                        userGems[msg.sender][27]++;
+                    } else if (gemNum < 405) {
+                        gem = "lemon drop";
+                        userGems[msg.sender][28]++;
+                    } else if (gemNum < 425) {
+                        gem = "carat eclipse";
+                        userGems[msg.sender][29]++;
+                    }
+
+                    emit GemFound(msg.sender, gem);
+                    break; 
+                    // only 1 gem per game
                 }
-
-                // yellow gems
-                else if (gemNum < 345) {
-                    gem = "corona topaz";
-                    userGems[msg.sender][24]++;
-                } else if (gemNum < 355) {
-                    gem = "aurora rax";
-                    userGems[msg.sender][25]++;
-                } else if (gemNum < 365) {
-                    gem = "pyramid plunder";
-                    userGems[msg.sender][26]++;
-                } else if (gemNum < 385) {
-                    gem = "starlight shimmer";
-                    userGems[msg.sender][27]++;
-                } else if (gemNum < 405) {
-                    gem = "lemon drop";
-                    userGems[msg.sender][28]++;
-                } else if (gemNum < 425) {
-                    gem = "carat eclipse";
-                    userGems[msg.sender][29]++;
-                }
-
-                emit GemFound(msg.sender, gem);
-                break; // only 1 gem per game
+                // no gem - nothing happens
             }
-
-            // no gem
-        }
-        
     }
 
     // user can check amount of gems (have to use gem index)

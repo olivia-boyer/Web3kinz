@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts ^5.6.0
 
-// Pet NFT contract
+// Clothing NFT contract
 // Must run npm install @openzeppelin/contracts to compile
 //created primarily via NFT Wizard at https://wizard.openzeppelin.com/#erc721
 //with a few additions to customize to what we want, so don't skip reading
