@@ -17,6 +17,8 @@ interface CNFT {
 // amount parameter = number of food items minted (1 food item = 1 hunger point)
 interface FT {
     function mint(address to, uint256 amount) external;
+    function balanceOf(address account) external view returns (uint256);
+    function burn(uint256 amount) external;
 }
 
 
@@ -31,7 +33,7 @@ contract Web3Kinz {
     //modifications for additional data storage, not exactly 256
     struct Pet {
         // pet needs
-        uint16 hunger;
+        uint256 hunger;
         uint16 happiness;
         uint8 sleeplevel; //out of 100
         //for calculating sleeplevel
@@ -150,7 +152,7 @@ contract Web3Kinz {
     }
 
     //check if sender is the owner of the pet they are interacting with
-    modifier isPetOwner(uint32 petid) {
+    modifier isPetOwner(uint256 petid) {
     require(petToOwner[petid] == msg.sender);
         _;
     }
@@ -234,7 +236,7 @@ contract Web3Kinz {
     // ************************
 
     //
-    function checkStats(uint32 petid) isPetOwner(petid) public returns (uint8) {
+    function checkStats(uint256 petid) isPetOwner(petid) public returns (uint8) {
         uint32 timedif = ((uint32(block.timestamp) - pets[petid].sleeptime) / 3600) * 13;
         if (timedif > 100) {
             timedif = 100;
@@ -256,7 +258,7 @@ contract Web3Kinz {
     }
 
     // put pet to bed
-    function naptime(uint32 petid) isPetOwner(petid) public {
+    function naptime(uint256 petid) isPetOwner(petid) public {
         require(!pets[petid].asleep, "Your pet is already sleeping!");
         pets[petid].asleep = true;
         //update sleeptime
@@ -264,7 +266,7 @@ contract Web3Kinz {
     }
 
     //wake pet up
-       function wakeup(uint32 petid) isPetOwner(petid) public {
+       function wakeup(uint256 petid) isPetOwner(petid) public {
         require(pets[petid].asleep, "Your pet is already awake!");
         pets[petid].asleep = false;
        //full sleep is a little under 8 hours, regain sleep level at rate of 13 per hour
@@ -283,7 +285,24 @@ contract Web3Kinz {
     }
 
     // feed pet
+    // uses food tokens directly, burns once used
+    function feedPet(uint256 petid, uint256 amount) isPetOwner(petid) public {
+        // check user has enough food
+        require(food.balanceOf(msg.sender) >= amount, "You don't have enough food");
 
+        // remove food tokens
+        food.burn(amount);
+        // burns from caller, should be fine
+
+        // update pet hunger
+        if (pets[petid].hunger + amount > 100) {
+            pets[petid].hunger = 100;
+        } else {
+            pets[petid].hunger += uint256(amount);
+        }
+    }
+    
+    
     // modifier isComa - pay eth to "revive" pet / take to doctor
 
     // ************************
