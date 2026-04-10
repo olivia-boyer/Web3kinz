@@ -292,7 +292,7 @@ contract Web3Kinz {
 
         // remove food tokens
         food.burn(amount);
-        // burns from caller, should be fine
+        // burns from caller
 
         // update pet hunger
         if (pets[petid].hunger + amount > 100) {
