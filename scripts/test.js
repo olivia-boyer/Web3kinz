@@ -36,6 +36,19 @@ async function main() {
     const event = receipt.logs.find(log => log.fragment && log.fragment.name === "PetAdopted");
     const petId = event.args.petId;
     console.log("Adopted pet with id:", petId.toString());
+
+    // adopt pet
+    const petType2 = ethers.encodeBytes32String("cat");
+    const petName2 = ethers.encodeBytes32String("Hera");
+    const tx2 = await web3kinz.adoptPet(petType2, petName2, { value: hre.ethers.parseEther("0.01") });
+
+    // get pet id from event
+    const receipt2 = await tx2.wait();
+    const event2 = receipt2.logs.find(log => log.fragment && log.fragment.name === "PetAdopted");
+    const petId2 = event2.args.petId;
+    console.log("Adopted pet with id:", petId2.toString());
+
+    // two different ids yay!!
     
     // check sleep level
     //const sleepLevel = await web3kinz.checkStats(petId);
