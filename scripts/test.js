@@ -37,10 +37,10 @@ async function main() {
     const petId = event.args.petId;
     console.log("Adopted pet with id:", petId.toString());
 
-    // adopt pet
+    // adopt pet (should fail)
     const petType2 = ethers.encodeBytes32String("cat");
     const petName2 = ethers.encodeBytes32String("Hera");
-    const tx2 = await web3kinz.adoptPet(petType2, petName2, { value: hre.ethers.parseEther("0.01") });
+    const tx2 = await web3kinz.adoptPet(petType2, petName2, { value: hre.ethers.parseEther("0.001") });
 
     // get pet id from event
     const receipt2 = await tx2.wait();
