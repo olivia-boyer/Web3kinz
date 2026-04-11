@@ -122,6 +122,8 @@ contract Web3Kinz {
     // ***************
     event GemFound(address user, string gem);
 
+    event PetAdopted(uint256 petId, address owner);
+
     // ***************
     // ** functions **
     // ***************
@@ -192,6 +194,9 @@ contract Web3Kinz {
         }
         petToOwner[petId] = msg.sender;
         pets.push(p);
+
+        // emit event (to give user petid)
+        emit PetAdopted(petId, msg.sender);
     }
 
     // purchase KinzCash
