@@ -1,25 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+import "./Web3kinzFood.sol";
+import "./Web3KinzPet.sol";
+import "./Web3kinzClothing.sol";
+
 /// @title Base contract for Web3Kinz. Holds all common structs, events, and base variables.
 /// @author people
-interface NFT {
+
+/*interface NFT {
     function safeMint(address) external returns (uint256);
-}
+}*/
 
 //Clothing NFT Interface
 //includes uint8 parameter for selecting type of clothing item
-interface CNFT {
+/*interface CNFT {
     function safeMint(address, uint8) external returns (uint256);
-}
+}*/
 
 //Food Token Interface
 // amount parameter = number of food items minted (1 food item = 1 hunger point)
-interface FT {
+/*interface FT {
     function mint(address to, uint256 amount) external;
     function balanceOf(address account) external view returns (uint256);
     function burn(uint256 amount) external;
-}
+}*/
 
 
 contract Web3Kinz {
@@ -40,6 +45,7 @@ contract Web3Kinz {
         //same variable for sleeping time and wake-time
         //usage depends on asleep bool
         uint32 sleeptime;
+        uint256 hungertime;
         //pet status
         bool asleep;
         bool comatose;
@@ -67,9 +73,9 @@ contract Web3Kinz {
     // *************
 
     // for pet nft contract
-    NFT public nftPet;
-    CNFT public clothing;
-    FT public food;
+    Web3KinzPet public nftPet;
+    Web3KinzClothing public clothing;
+    Web3kinzFood public food;
 
     //owner
     address owner;
@@ -96,7 +102,12 @@ contract Web3Kinz {
 
     uint256 private nonce = 0; // used for random number generation
 
-    mapping(address => uint256[]) public userGems; // stores users' gems
+    // gem hunt
+    mapping(address => uint256[30]) public userGems; // stores users' gems
+
+    mapping(bytes32 => uint256) public gemToIndex; // stores index position for each gem
+
+    
 
     // mapping cooldown for each game - possibly - need to google
     // store timestamp of the time the game was played and compare to current time
@@ -104,12 +115,12 @@ contract Web3Kinz {
 
     // array of food
     // directory of all food types available in the game
-    uint256[100] public gameFoodDirectory;
+    //uint256[100] public gameFoodDirectory;
 
     // mapping of user (key) to amount of each food (value) the user has in their inventory
     // user = address = msg.sender
     // amount of each food = uint256[]
-    mapping(address => uint256[100]) userFoodCount;
+    //mapping(address => uint256[100]) userFoodCount;
 
     // mapping of user (key) to last play time (value) for wheelOfWow()
     // user = address = msg.sender
@@ -117,12 +128,26 @@ contract Web3Kinz {
    //OLD MAPPING mapping(address => uint64) wheelOfWowTime;
 
    // mapping(address => uint64) wishingWellTime;
+
     // ***************
     // ** Events **
     // ***************
+
+    // for gem hunt
     event GemFound(address user, string gem);
 
+    event GemAmount(address user, string gem, uint256 amount);
+
+    event CrownRedeemable(address user, bool redeemable);
+
+    // for adoption
     event PetAdopted(uint256 petId, address owner);
+
+    // for kinzcash
+    event KinzcashBalance(address user, uint256 balance);
+
+    // for pet care
+    event HungerLevel(uint256 petId, uint256 hunger);
 
     // ***************
     // ** functions **
@@ -155,18 +180,53 @@ contract Web3Kinz {
 
     //check if sender is the owner of the pet they are interacting with
     modifier isPetOwner(uint256 petid) {
-    require(petToOwner[petid] == msg.sender);
+        require(petToOwner[petid] == msg.sender);
         _;
     }
 
 
-    // constructor
-    // deploy nft contracts first, get contract address, then pass into constructor for main contract
-    constructor(address _nftAddress, address _clothaddr, address _foodaddr) payable {
+    // constructor (deploys nft contracts)
+    constructor() payable {
         owner = msg.sender;
-        nftPet = NFT(_nftAddress);
-        clothing = CNFT(_clothaddr);
-        food = FT(_foodaddr);
+        //nftPet = NFT(_nftAddress);
+        //clothing = CNFT(_clothaddr);
+        //food = FT(_foodaddr);
+
+        food = new Web3kinzFood(address(this));
+        nftPet = new Web3KinzPet(address(this));
+        clothing = new Web3KinzClothing(address(this));
+
+        // set up gem index mapping
+        gemToIndex[keccak256("webkinz diamond")] = 0;
+        gemToIndex[keccak256("unicorn horn")] = 1;
+        gemToIndex[keccak256("yum zum sparkle")] = 2;
+        gemToIndex[keccak256("zingos zincoz")] = 3;
+        gemToIndex[keccak256("goober glitter")] = 4;
+        gemToIndex[keccak256("booger nugget")] = 5;
+        gemToIndex[keccak256("red ruby heart")] = 6;
+        gemToIndex[keccak256("ember amber")] = 7;
+        gemToIndex[keccak256("volcano viscose")] = 8;
+        gemToIndex[keccak256("flare fyca")] = 9;
+        gemToIndex[keccak256("torch treasure")] = 10;
+        gemToIndex[keccak256("lava lamp")] = 11;
+        gemToIndex[keccak256("earth emerald")] = 12;
+        gemToIndex[keccak256("moss marble")] = 13;
+        gemToIndex[keccak256("cat's eye glint")] = 14;
+        gemToIndex[keccak256("jaded envy")] = 15;
+        gemToIndex[keccak256("pearl egg")] = 16;
+        gemToIndex[keccak256("terra tectonic")] = 17;
+        gemToIndex[keccak256("ocean sapphire")] = 18;
+        gemToIndex[keccak256("teardrop tower")] = 19;
+        gemToIndex[keccak256("sea stone")] = 20;
+        gemToIndex[keccak256("rainbow flower")] = 21;
+        gemToIndex[keccak256("river ripple")] = 22;
+        gemToIndex[keccak256("aqua orb")] = 23;
+        gemToIndex[keccak256("corona topaz")] = 24;
+        gemToIndex[keccak256("aurora rax")] = 25;
+        gemToIndex[keccak256("pyramid plunder")] = 26;
+        gemToIndex[keccak256("starlight shimmer")] = 27;
+        gemToIndex[keccak256("lemon drop")] = 28;
+        gemToIndex[keccak256("carat eclipse")] = 29;                
     }
 
 
@@ -183,7 +243,7 @@ contract Web3Kinz {
         uint256 petId = nftPet.safeMint(msg.sender);
 
          // create pet struct
-        Pet memory p = Pet({hunger: 100, happiness: 100, sleeplevel: 100, sleeptime: uint32(block.timestamp), 
+        Pet memory p = Pet({hunger: 100, happiness: 100, sleeplevel: 100, sleeptime: uint32(block.timestamp), hungertime: uint32(block.timestamp),
         asleep: false, comatose: false, petID: petId, petType: petType, petName: petName, 
         birthTime: uint64(block.timestamp)});
 
@@ -195,6 +255,9 @@ contract Web3Kinz {
         petToOwner[petId] = msg.sender;
         pets.push(p);
 
+        // for testing lol
+        users[msg.sender].balance += 100;
+
         // emit event (to give user petid)
         emit PetAdopted(petId, msg.sender);
     }
@@ -204,6 +267,15 @@ contract Web3Kinz {
         //1 kinzCash == 1000 wei
         uint256 bought = msg.value / 1000;
         users[msg.sender].balance += bought;
+    }
+
+    // user can see amount of kinzcash they have
+    function checkKinzcashBalance() public {
+        // get balance
+        uint256 balance = users[msg.sender].balance;
+
+        // emit event
+        emit KinzcashBalance(msg.sender, balance);
     }
 
     // ************************
@@ -262,6 +334,32 @@ contract Web3Kinz {
         return pets[petid].sleeplevel;
     }
 
+    // check hunger level
+    function checkHunger(uint256 petid) isPetOwner(petid) public returns (uint256) {
+        updateHunger(petid);
+
+        // emit event so user can see
+        emit HungerLevel(petid, pets[petid].hunger);
+
+        return pets[petid].hunger;
+    }
+
+    // helper function to calc hunger decrease over time
+    function updateHunger(uint256 petid) internal {
+        uint256 timedif = ((uint256(block.timestamp) - pets[petid].hungertime) / 3600) * 10;
+
+        if (timedif > 100) {
+            timedif = 100;
+        }
+
+        if (pets[petid].hunger < timedif) {
+            timedif = pets[petid].hunger;
+        }
+
+        pets[petid].hunger -= uint8(timedif);
+        pets[petid].hungertime = uint32(block.timestamp);
+    }
+
     // put pet to bed
     function naptime(uint256 petid) isPetOwner(petid) public {
         require(!pets[petid].asleep, "Your pet is already sleeping!");
@@ -296,7 +394,7 @@ contract Web3Kinz {
         require(food.balanceOf(msg.sender) >= amount, "You don't have enough food");
 
         // remove food tokens
-        food.burn(amount);
+        food.burnFromAddress(msg.sender, amount);
         // burns from caller
 
         // update pet hunger
@@ -338,11 +436,12 @@ contract Web3Kinz {
         // random selection of food
         else if (wowValue < 50) {
             // generate a random number to select a random food from the gameFoodDirectory array
-            uint256 foodIndex = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % gameFoodCount;
-            nonce++;
+            //uint256 foodIndex = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % gameFoodCount;
+            //nonce++;
 
             // increment count for specific food item in user's inventory
-            userFoodCount[msg.sender][foodIndex] += 1;
+            //userFoodCount[msg.sender][foodIndex] += 1;
+            food.mint(msg.sender, 10);
         }
         // random amount of KinzCash
         else {
@@ -516,7 +615,7 @@ contract Web3Kinz {
     // user gets 3 tries to find a gem
     // can play once per day
     // (gems are tracked as numbers in array, not nfts)
-        function gemHunt() public hasPet(msg.sender) {
+        function gemHunt(uint256 petid) public isPetOwner(petid) {
             // check time
             require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
 
@@ -653,18 +752,38 @@ contract Web3Kinz {
                     break; 
                     // only 1 gem per game
                 }
-                // no gem - nothing happens
+                // no gem found
+            }
+            // decrease hunger & sleep after playing
+            if (pets[petid].hunger > 5) {
+                pets[petid].hunger -= 5;
+            } else {
+                pets[petid].hunger = 0;
+            }
+
+            if (pets[petid].sleeplevel > 5) {
+                pets[petid].sleeplevel -= 5;
+            } else {
+                pets[petid].sleeplevel = 0;
             }
     }
 
     // user can check amount of gems (have to use gem index)
-    function checkGemAmount(uint256 index) public view returns (uint256) {
-        require(index < 6 && index >= 0, "Invalid index");
+    function checkGemAmount(string memory gemName) public returns (uint256) {
+        // check index
+        uint256 index = gemToIndex[keccak256(bytes(gemName))];
+        require(index < 29 && index >= 0, "Invalid index");
+
+        // emit event
+        emit GemAmount(msg.sender, gemName, userGems[msg.sender][index]);
         return userGems[msg.sender][index];
     }
 
     // user can sell gems at any time for kinzcash
-    function sellGem(uint256 index) public {
+    function sellGem(string memory gemName) public {
+        // check index
+        uint256 index = gemToIndex[keccak256(bytes(gemName))];
+        require(index < 29 && index >= 0, "Invalid index");
         require(userGems[msg.sender][index] > 0, "You don't have that gem");
 
         // check if uncommon
@@ -689,11 +808,14 @@ contract Web3Kinz {
     }
 
     // user or redeem crown function can call, check if enough gems for crown
-    function checkCrown(address user) public view returns (bool) {
-        for (uint i=0; i<6; i++) {
-            if (userGems[user][i] == 0)
+    function checkCrown(address user) public returns (bool) {
+        for (uint i=0; i<29; i++) {
+            if (userGems[user][i] == 0) {
+                emit CrownRedeemable(user, false);
                 return false;
+            }
         }
+        emit CrownRedeemable(user, true);
         return true;
     }
 
@@ -702,7 +824,7 @@ contract Web3Kinz {
         require(checkCrown(msg.sender), "You don't have enough gems");
 
         // remove gems
-        for (uint i=0; i<6; i++) {
+        for (uint i=0; i<29; i++) {
             userGems[msg.sender][i]--;
         }
 
