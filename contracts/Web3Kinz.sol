@@ -33,9 +33,8 @@ contract Web3Kinz {
     // ** structs **
     // *************
 
-      /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this
-    ///  stuct, which fits neatly into 256 bytes of space. Each pet is an NFT.
-    //modifications for additional data storage, not exactly 256
+      /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this struct
+      // Size: 968 bytes
     struct Pet {
         // pet needs
         uint256 hunger;
@@ -291,6 +290,7 @@ contract Web3Kinz {
         require(kind < 100, "Clothing type does not exist.");
         require(users[msg.sender].balance > 100, "clothing items cost 100 kinzcash");
         users[msg.sender].balance -= 100;
+        //call function from other contract
         clothing.safeMint(msg.sender, kind);
     }
 
@@ -312,8 +312,8 @@ contract Web3Kinz {
     // ** pet care functions **
     // ************************
 
-    //
-    function checkStats(uint256 petid) isPetOwner(petid) public returns (uint8) {
+    //recalculates pet sleeplevel based on time since last 
+    function checkSleepStats(uint256 petid) isPetOwner(petid) public returns (uint8) {
         uint32 timedif = ((uint32(block.timestamp) - pets[petid].sleeptime) / 3600) * 13;
         if (timedif > 100) {
             timedif = 100;
@@ -330,7 +330,8 @@ contract Web3Kinz {
             }
             pets[petid].sleeplevel -= uint8(timedif);
         }
-
+        //update sleeptime to prevent issues for wakeup function
+        pets[petid].sleeptime = uint32(block.timestamp);
         return pets[petid].sleeplevel;
     }
 
