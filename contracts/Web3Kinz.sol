@@ -163,6 +163,7 @@ contract Web3Kinz {
     // for pet care
     event HungerLevel(uint256 petId, uint256 hunger);
 
+    event SleepLevel(uint256 petId, uint8 sleep);
     // for vet trip
     event VetTrip(uint256 petId);
 
@@ -367,6 +368,7 @@ contract Web3Kinz {
 
         //update sleeptime to prevent issues for wakeup function
         pets[petId].sleeptime = uint32(block.timestamp);
+        emit SleepLevel(petId, pets[petId].sleeplevel);
         return pets[petId].sleeplevel;
     }
 
