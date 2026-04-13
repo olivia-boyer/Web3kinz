@@ -336,6 +336,11 @@ contract Web3Kinz {
         //update sleeptime to prevent issues for wakeup function
         pets[petId].sleeptime = uint32(block.timestamp);
         return pets[petId].sleeplevel;
+
+        // check stats
+        if (pets[petId].hunger == 0 && pets[petId].sleeplevel == 0 && pets[petId].happiness == 0) {
+            pets[petId].comatose = true;
+        }
     }
 
     // check hunger level
@@ -362,6 +367,11 @@ contract Web3Kinz {
 
         pets[petId].hunger -= uint8(timedif);
         pets[petId].hungertime = uint32(block.timestamp);
+
+        // check stats
+        if (pets[petId].hunger == 0 && pets[petId].sleeplevel == 0 && pets[petId].happiness == 0) {
+            pets[petId].comatose = true;
+        }
     }
 
     // put pet to bed
@@ -372,13 +382,13 @@ contract Web3Kinz {
         pets[petId].sleeptime = uint32(block.timestamp);
     }
 
-    //wake pet up
-       function wakeup(uint256 petId) isPetOwner(petId) public {
+    // wake pet up
+    function wakeup(uint256 petId) isPetOwner(petId) public {
         require(pets[petId].asleep, "Your pet is already awake!");
         pets[petId].asleep = false;
-       //full sleep is a little under 8 hours, regain sleep level at rate of 13 per hour
+        // full sleep is a little under 8 hours, regain sleep level at rate of 13 per hour
         uint32 addup = ((uint32(block.timestamp) - pets[petId].sleeptime)/3600)*13;
-        //maximum sleep level is 100
+        // maximum sleep level is 100
         if (addup > 100) {
             addup = 100;
         }
@@ -387,7 +397,7 @@ contract Web3Kinz {
         } else {
             pets[petId].sleeplevel += uint8(addup);
         }
-        //update wake time
+        // update wake time
         pets[petId].sleeptime = uint32(block.timestamp); 
     }
 
@@ -413,10 +423,22 @@ contract Web3Kinz {
     // take pet to the vet
     function takeToVet(uint256 petId) public payable isPetOwner(petId) {
         // check if pet is comatose
+        require(pets[petId].comatose == true, "Your pet is perfectly healthy!");
+
         // pay vet fee
+        require(msg.value >= 0.005 ether, "The vet fee is 0.005 ETH");
+
         // revive pet and reset basic needs
+        pets[petId].comatose = false;
+        pets[petId].hunger = 50;
+        pets[petId].sleeplevel = 50;
+        pets[petId].happiness = 50;
+
         // reset timers so needs don't immediately drop
-        // 
+        pets[petId].hungertime = uint32(block.timestamp);
+        pets[petId].sleeptime = uint32(block.timestamp);
+
+        // emit an event
     } 
 
     // ************************
