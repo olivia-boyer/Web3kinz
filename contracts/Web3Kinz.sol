@@ -8,25 +8,7 @@ import "./Web3KinzFurniture.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @title Base contract for Web3Kinz. Holds all common structs, events, and base variables.
-/// @author people
-
-/*interface NFT {
-    function safeMint(address) external returns (uint256);
-}*/
-
-//Clothing NFT Interface
-//includes uint8 parameter for selecting type of clothing item
-/*interface CNFT {
-    function safeMint(address, uint8) external returns (uint256);
-}*/
-
-//Food Token Interface
-// amount parameter = number of food items minted (1 food item = 1 hunger point)
-/*interface FT {
-    function mint(address to, uint256 amount) external;
-    function balanceOf(address account) external view returns (uint256);
-    function burn(uint256 amount) external;
-}*/
+/// @author Olivia Boyer, Rebecca Lassman, Glory Zhang
 
 
 contract Web3Kinz {
@@ -121,28 +103,6 @@ contract Web3Kinz {
 
     mapping(bytes32 => uint256) public gemToIndex; // stores index position for each gem
 
-    
-
-    // mapping cooldown for each game - possibly - need to google
-    // store timestamp of the time the game was played and compare to current time
-    // have a mapping for each game, map user address to timestamp
-
-    // array of food
-    // directory of all food types available in the game
-    //uint256[100] public gameFoodDirectory;
-
-    // mapping of user (key) to amount of each food (value) the user has in their inventory
-    // user = address = msg.sender
-    // amount of each food = uint256[]
-    //mapping(address => uint256[100]) userFoodCount;
-
-    // mapping of user (key) to last play time (value) for wheelOfWow()
-    // user = address = msg.sender
-    // last play time = uint64 = block.timestamp
-   //OLD MAPPING mapping(address => uint64) wheelOfWowTime;
-
-   // mapping(address => uint64) wishingWellTime;
-
     // ***************
     // ** Events **
     // ***************
@@ -162,6 +122,8 @@ contract Web3Kinz {
 
     // for pet care
     event HungerLevel(uint256 petId, uint256 hunger);
+
+    event HappinessLevel(uint256 petId, uint16 happiness);
 
     event SleepLevel(uint256 petId, uint8 sleep);
     // for vet trip
@@ -399,6 +361,10 @@ contract Web3Kinz {
 
         // check health
         _checkHealth(petId);
+    }
+
+    function checkHappiness(uint256 petId) isPetOwner(petId) public {
+        emit HappinessLevel(petId, pets[petId].happiness);
     }
 
     // put pet to bed
