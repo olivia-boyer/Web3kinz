@@ -871,8 +871,9 @@ contract Web3Kinz {
                 emit GemFound(msg.sender, gem);
 
                 // happiness for finding gem
-                if (pets[petId].happiness <= 90) {
-                    pets[petId].happiness += 10;
+                // happiness increase is 10, 5 always subtracted
+                if (pets[petId].happiness <= 85) {
+                    pets[petId].happiness += 15;
                 } else {
                     pets[petId].happiness = 100;
                 }
@@ -966,8 +967,8 @@ contract Web3Kinz {
             userGems[msg.sender][i]--;
         }
 
-        // give crown (idk if it should be nft)
-        // maybe should be a clothing item
+        // make nft (crown is 3)
+        clothing.safeMint(msg.sender, 3);
     }
 
 
