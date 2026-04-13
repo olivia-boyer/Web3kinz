@@ -913,7 +913,6 @@ contract Web3Kinz {
         require(to != address(0), "Invalid receiver address");
         
         // ensure proposer actually owns item they are offering
-        // use the IERC721 interface to check ownership on the external NFT contracts
         require(IERC721(nftAddressA).ownerOf(tokenIdA) == msg.sender, "You don't own the item you're offering");
 
         // create the trade proposal
