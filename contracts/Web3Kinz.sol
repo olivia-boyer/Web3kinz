@@ -75,6 +75,7 @@ contract Web3Kinz {
     Web3KinzPet public nftPet;
     Web3KinzClothing public clothing;
     Web3kinzFood public food;
+    Web3KinzFurniture public furniture;
 
     //owner
     address owner;
@@ -87,8 +88,6 @@ contract Web3Kinz {
 
     // global variable for total amount of clothing items
     uint256 gameClothingCount = 100;
-
-
 
 
     // mappings + arrays
@@ -285,13 +284,15 @@ contract Web3Kinz {
     // ************************
     
     // purchase furniture - furniture is NFT
+    // kind: type of furniture to purchase
     function purchaseFurniture(uint8 kind) public {
-        // there are only 100 furniture items
+        // limited number of furniture
         require(kind < 100, "Furniture type does not exist.");
-        require(users[msg.sender].balance > 100, "Furniture items cost 100 KinzCash");
-        users[msg.sender].balance -= 100;
+        // make a purchase using KinzCash
+        require(users[msg.sender].balance >= 150, "Furniture items cost 150 KinzCash");
+        users[msg.sender].balance -= 150;
         // call function from other contract
-        clothing.safeMint(msg.sender, kind);
+        furniture.safeMint(msg.sender, kind);
     }
     
     // purchase pet clothing - clothing is NFT
@@ -459,7 +460,7 @@ contract Web3Kinz {
 
     //TODO: modify to match new storage form
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
-    function wheelOfWow() public notComatose(petId) {
+    function wheelOfWow() public isPetOwner(petId) notComatose(petId) {
         // check the time, ensure 24 hours has past since last play time
         require(block.timestamp >= users[msg.sender].lastWheelOfWoW + 1 days, "24 hours have not yet passed!!");
         // update mapping to current time
