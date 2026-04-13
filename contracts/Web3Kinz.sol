@@ -288,7 +288,7 @@ contract Web3Kinz {
     function purchaseFurniture(uint8 kind) public {
         // there are only 100 furniture items
         require(kind < 100, "Furniture type does not exist.");
-        require(users[msg.sender].balance > 100, "Furniture items cost 100 kinzcash");
+        require(users[msg.sender].balance > 100, "Furniture items cost 100 KinzCash");
         users[msg.sender].balance -= 100;
         // call function from other contract
         clothing.safeMint(msg.sender, kind);
@@ -299,7 +299,7 @@ contract Web3Kinz {
     function purchaseClothing(uint8 kind) public {
         // there are only 100 clothing items
         require(kind < 100, "Clothing type does not exist.");
-        require(users[msg.sender].balance > 100, "Clothing items cost 100 kinzcash");
+        require(users[msg.sender].balance > 100, "Clothing items cost 100 KinzCash");
         users[msg.sender].balance -= 100;
         // call function from other contract
         clothing.safeMint(msg.sender, kind);
