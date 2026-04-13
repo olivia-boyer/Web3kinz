@@ -16,7 +16,7 @@ contract Web3KinzClothing is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     uint256 private _nextTokenId;
 
     //two possible clothing options currently
-    string[2] private images = ["ipfs://bafkreib62nibyvfegj2omkxmytg632fhxz473yxfcij7k7hvzynlf5jseu","bafkreibzets4aisvn75hanrdr2usjqu5okyktbyjliv4wphgtn5t2nvgoq"];
+    string[3] private images = ["ipfs://bafkreib62nibyvfegj2omkxmytg632fhxz473yxfcij7k7hvzynlf5jseu","bafkreibzets4aisvn75hanrdr2usjqu5okyktbyjliv4wphgtn5t2nvgoq","bafkreigz2qq3wtwnywusd22rtzkkpihjl3ok7hcixixez4vklzeoahi32y"];
 
     constructor(address initialOwner)
         ERC721("Web3KinzClothing", "Clothes")
@@ -32,7 +32,7 @@ contract Web3KinzClothing is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
         //100 kinds of clothes listed in program
         //but only actually making two for now
         //in a more robust implementation with line would not exist
-        kind = kind % 2;
+        kind = kind % 3;
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         //if building web application, would use nft metadata to correlate to how object appears in game

@@ -17,6 +17,7 @@ contract Web3KinzPet is ERC721, ERC721Burnable, Ownable {
         Ownable(initialOwner)
     {}
 
+
     function safeMint(address to) public onlyOwner returns (uint256) {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
