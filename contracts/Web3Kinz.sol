@@ -460,7 +460,7 @@ contract Web3Kinz {
 
     //TODO: modify to match new storage form
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
-    function wheelOfWow() public isPetOwner(petId) notComatose(petId) {
+    function wheelOfWow() public isPetOwner(petId) notComatose(pets[petId] {
         // check the time, ensure 24 hours has past since last play time
         require(block.timestamp >= users[msg.sender].lastWheelOfWoW + 1 days, "24 hours have not yet passed!!");
         // update mapping to current time
@@ -473,11 +473,21 @@ contract Web3Kinz {
         // logic for prizes
         // random selection of clothing
         if (wowValue < 10) {
-            //
+            // generate random value
+            uint8 clothingKind = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % gameClothingCount);
+            nonce++;
+
+            // mint clothing nft
+            clothing.safeMint(msg.sender, clothingKind);
         }
         // random selection of furniture
         else if (wowValue < 30) {
-            //
+            // generate random value
+            uint8 furnitureKind = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % gameClothingCount);
+            nonce++;
+
+            // mint furniture nft
+            furniture.safeMint(msg.sender, furnitureKind);
         }
         // random selection of food
         else if (wowValue < 50) {
@@ -495,43 +505,30 @@ contract Web3Kinz {
             if (wowValue < 60) {
                 // specified win value
                 uint256 cashAmount = 20;
-
-                // add given amount to user's KinzCash balance
-                users[msg.sender].balance += cashAmount;
             }
             // receive 50 KinzCash
             else if (wowValue < 70) {
                 // specified win value
                 uint256 cashAmount = 50;
-
-                // add given amount to user's KinzCash balance
-                users[msg.sender].balance += cashAmount;
             }
             // receive 100 KinzCash
             else if (wowValue < 80) {
                 // specified win value
                 uint256 cashAmount = 100;
-
-                // add given amount to user's KinzCash balance
-                users[msg.sender].balance += cashAmount;
             }
             // receive 500 KinzCash
             else if (wowValue < 90) {
                 // specified win value
                 uint256 cashAmount = 500;
-
-                // add given amount to user's KinzCash balance
-                users[msg.sender].balance += cashAmount;
             }
             // receive random amount of KinzCash between 20 and 500
             else if (wowValue < 100) {
                 // 500 - 20 = 480 => use % 481 to include 480 and add 20 to make up for the offset
                 uint256 cashAmount = (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 481) + 20;
                 nonce++;
-
-                // add generate amount to user's KinzCash balance
-                users[msg.sender].balance += cashAmount;
             }
+            // output owed amount to user's account
+            users[msg.sender].balance += cashAmount;
         }
     }
 
@@ -554,7 +551,7 @@ contract Web3Kinz {
     }
 
     // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
-   function wishingWell() public notComatose(petId) {
+   function wishingWell() public notComatose(pets[petId]) {
 
            // check the time, ensure 24 hours has past since last play time
      
@@ -661,7 +658,7 @@ contract Web3Kinz {
     // user gets 3 tries to find a gem
     // can play once per day
     // (gems are tracked as numbers in array, not nfts)
-    function gemHunt(uint256 petId) public isPetOwner(petId) notComatose(petId) {
+    function gemHunt(uint256 petId) public isPetOwner(petId) notComatose(pets[petId]) {
         // check time
         require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
 
