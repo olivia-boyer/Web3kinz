@@ -97,17 +97,19 @@ async function main() {
     console.log("hunger level after feeding:", hungerLevel2.toString());
 
     // put pet to bed
+    await web3kinz.naptime(petId); 
 
     // wake pet up
-
+    await web3kinz.wakeup(petId);
     // buy clothing
 
+    await web3kinz.purchaseClothing(1);
     // buy furniture
 
     // play wheel of wow
     
     // play wishing well
-
+    await web3kinz.wishingWell(petId);
     // check happiness after playing game
 }
 
