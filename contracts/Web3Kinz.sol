@@ -702,6 +702,32 @@ contract Web3Kinz {
                 prize += rowprize;
         }
         users[msg.sender].wishes -= 1; //decrement daily wish count before cashout
+           if (pets[petId].hunger > 5) {
+            pets[petId].hunger -= 5;
+        } else {
+            pets[petId].hunger = 0;
+        }
+
+        if (pets[petId].sleeplevel > 5) {
+            pets[petId].sleeplevel -= 5;
+        } else {
+            pets[petId].sleeplevel = 0;
+        }
+
+        // decrease happiness for no gem
+        if (prize == 0){
+        if (pets[petId].happiness > 5) {
+            pets[petId].happiness -= 5;
+        } else {
+            pets[petId].happiness = 0;
+        }
+        } else {
+               if (pets[petId].happiness <= 90) {
+                    pets[petId].happiness += 10;
+                } else {
+                    pets[petId].happiness = 100;
+                } 
+        }
         users[msg.sender].balance += prize; //add prize money to user balance
     }
 
