@@ -261,7 +261,7 @@ contract Web3Kinz {
 
          // create pet struct
         Pet memory p = Pet({hunger: 100, happiness: 100, sleeplevel: 100, sleeptime: uint32(block.timestamp), hungertime: uint32(block.timestamp),
-        asleep: false, comatose: false, petId: petId, petType: petType, petName: petName, 
+        asleep: false, comatose: false, petID: petId, petType: petType, petName: petName, 
         birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
@@ -476,7 +476,8 @@ contract Web3Kinz {
 
     //TODO: modify to match new storage form
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
-    function wheelOfWow() public isPetOwner(petId) notComatose(pets[petId] {
+    function wheelOfWow(uint32 petId) public isPetOwner(petId) notComatose(pets[petId]) {
+        uint256 cashAmount;
         // check the time, ensure 24 hours has past since last play time
         require(block.timestamp >= users[msg.sender].lastWheelOfWoW + 1 days, "24 hours have not yet passed!!");
         // update mapping to current time
@@ -520,27 +521,27 @@ contract Web3Kinz {
             // receive 20 KinzCash
             if (wowValue < 60) {
                 // specified win value
-                uint256 cashAmount = 20;
+               cashAmount = 20;
             }
             // receive 50 KinzCash
             else if (wowValue < 70) {
                 // specified win value
-                uint256 cashAmount = 50;
+                cashAmount = 50;
             }
             // receive 100 KinzCash
             else if (wowValue < 80) {
                 // specified win value
-                uint256 cashAmount = 100;
+                cashAmount = 100;
             }
             // receive 500 KinzCash
             else if (wowValue < 90) {
                 // specified win value
-                uint256 cashAmount = 500;
+                cashAmount = 500;
             }
             // receive random amount of KinzCash between 20 and 500
             else if (wowValue < 100) {
                 // 500 - 20 = 480 => use % 481 to include 480 and add 20 to make up for the offset
-                uint256 cashAmount = (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 481) + 20;
+                cashAmount = (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, nonce))) % 481) + 20;
                 nonce++;
             }
             // output owed amount to user's account
@@ -567,7 +568,7 @@ contract Web3Kinz {
     }
 
     // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
-   function wishingWell() public notComatose(pets[petId]) {
+   function wishingWell(uint32 petId) public notComatose(pets[petId]) {
 
            // check the time, ensure 24 hours has past since last play time
      
