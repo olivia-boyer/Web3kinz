@@ -4,6 +4,8 @@ pragma solidity ^0.8.28;
 import "./Web3kinzFood.sol";
 import "./Web3KinzPet.sol";
 import "./Web3kinzClothing.sol";
+import "./Web3KinzFurniture.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @title Base contract for Web3Kinz. Holds all common structs, events, and base variables.
 /// @author people
@@ -33,8 +35,8 @@ contract Web3Kinz {
     // ** structs **
     // *************
 
-      /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this struct
-      // Size: 968 bytes
+    /// @dev The main pet struct. Every pet in Web3Kinz is represented by a copy of this struct
+    // Size: 968 bytes
     struct Pet {
         // pet needs
         uint256 hunger;
@@ -55,9 +57,9 @@ contract Web3Kinz {
         uint64 birthTime; // to give the pet a birthday
     }
 
-    //stores information on each user
+    // stores information on each user
     struct UserInfo {
-        uint256 balance; //ammount of kinzcash
+        uint256 balance; // amount of kinzcash
         //times reset after 24 hours
         uint64 lastGemHunt; //time of last gem hunt
         uint64 lastWheelOfWoW; //time of last wheel spin
@@ -66,6 +68,20 @@ contract Web3Kinz {
         bool exists; //used for checking if user in users mapping
        // Pet[] pets; // pets owned by user
     }
+
+    // tracks the offer made
+    struct TradeOffer {
+        address proposer; // user making trade offer
+        address receiver; // user receiving trade offer
+        address nftAddressA; // clothing or furniture of proposer
+        uint256 tokenIdA;
+        address nftAddressB; // clothing or furniture of receiver
+        uint256 tokenIdB;
+        bool active;
+    }
+
+    mapping(uint256 => TradeOffer) public trades;
+    uint256 public tradeCounter;
 
     // *************
     // ** storage **
@@ -449,8 +465,8 @@ contract Web3Kinz {
 
     // check health stats and determine if comatose
     function _checkHealth(uint256 petId) internal {
-        if (pets[petid].hunger == 0 && pets[petid].sleeplevel == 0) {
-            pets[petid].comatose = true;
+        if (pets[petId].hunger == 0 && pets[petId].sleeplevel == 0) {
+            pets[petId].comatose = true;
         }
     }
 
@@ -883,7 +899,50 @@ contract Web3Kinz {
     // ** friend functions **
     // **********************
 
+    // proposing a trade
+    function proposeTrade(
+        address to, 
+        address nftAddressA, 
+        uint256 tokenIdA, 
+        address nftAddressB, 
+        uint256 tokenIdB
+    ) public {
+        // safety check
+        require(to != msg.sender, "You cannot trade with yourself!");
+        require(to != address(0), "Invalid receiver address");
+        
+        // ensure proposer actually owns item they are offering
+        // use the IERC721 interface to check ownership on the external NFT contracts
+        require(IERC721(nftAddressA).ownerOf(tokenIdA) == msg.sender, "You don't own the item you're offering");
+
+        // create the trade proposal
+        trades[tradeCounter] = TradeOffer({
+            proposer: msg.sender,
+            receiver: to,
+            nftAddressA: nftAddressA,
+            tokenIdA: tokenIdA,
+            nftAddressB: nftAddressB,
+            tokenIdB: tokenIdB,
+            active: true
+        });
+
+        // increment counter
+        tradeCounter++;
+    }
+
     // trading - everything but food
     // transactions open to the ethernet
-    // how to ensure cannot ensure? - probably in the slides
+    function makeTrade(uint256 tradeId) public {
+        TradeOffer storage trade = trades[tradeId];
+        require(trade.active, "Trade is no longer active");
+        require(msg.sender == trade.receiver, "You are not the intended recipient");
+
+        // mark trade as inactive to prevent re-entrancy
+        trade.active = false;
+
+        // make trade
+        // users must have called .approve() on the NFT contracts first
+        IERC721(trade.nftAddressA).transferFrom(trade.proposer, trade.receiver, trade.tokenIdA);
+        IERC721(trade.nftAddressB).transferFrom(trade.receiver, trade.proposer, trade.tokenIdB);
+    }
 }
