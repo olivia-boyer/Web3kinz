@@ -148,6 +148,9 @@ contract Web3Kinz {
     // for pet care
     event HungerLevel(uint256 petId, uint256 hunger);
 
+    // for vet trip
+    event VetTrip(uint256 petId);
+
     // ***************
     // ** functions **
     // ***************
@@ -178,8 +181,8 @@ contract Web3Kinz {
     }
 
     //check if sender is the owner of the pet they are interacting with
-    modifier isPetOwner(uint256 petid) {
-        require(petToOwner[petid] == msg.sender);
+    modifier isPetOwner(uint256 petId) {
+        require(petToOwner[petId] == msg.sender);
         _;
     }
 
@@ -243,7 +246,7 @@ contract Web3Kinz {
 
          // create pet struct
         Pet memory p = Pet({hunger: 100, happiness: 100, sleeplevel: 100, sleeptime: uint32(block.timestamp), hungertime: uint32(block.timestamp),
-        asleep: false, comatose: false, petID: petId, petType: petType, petName: petName, 
+        asleep: false, comatose: false, petId: petId, petType: petType, petName: petName, 
         birthTime: uint64(block.timestamp)});
 
         // assign pet to owner & store pet
@@ -313,84 +316,84 @@ contract Web3Kinz {
     // ************************
 
     //recalculates pet sleeplevel based on time since last 
-    function checkSleepStats(uint256 petid) isPetOwner(petid) public returns (uint8) {
-        uint32 timedif = ((uint32(block.timestamp) - pets[petid].sleeptime) / 3600) * 13;
+    function checkSleepStats(uint256 petId) isPetOwner(petId) public returns (uint8) {
+        uint32 timedif = ((uint32(block.timestamp) - pets[petId].sleeptime) / 3600) * 13;
         if (timedif > 100) {
             timedif = 100;
         }
 
-        if (pets[petid].asleep) {
-            pets[petid].sleeplevel += uint8(timedif);
-            if (pets[petid].sleeplevel > 100) {
-                pets[petid].sleeplevel = 100;
+        if (pets[petId].asleep) {
+            pets[petId].sleeplevel += uint8(timedif);
+            if (pets[petId].sleeplevel > 100) {
+                pets[petId].sleeplevel = 100;
             }
         } else {
-            if (pets[petid].sleeplevel < uint8(timedif)) {
-                timedif = pets[petid].sleeplevel;
+            if (pets[petId].sleeplevel < uint8(timedif)) {
+                timedif = pets[petId].sleeplevel;
             }
-            pets[petid].sleeplevel -= uint8(timedif);
+            pets[petId].sleeplevel -= uint8(timedif);
         }
         //update sleeptime to prevent issues for wakeup function
-        pets[petid].sleeptime = uint32(block.timestamp);
-        return pets[petid].sleeplevel;
+        pets[petId].sleeptime = uint32(block.timestamp);
+        return pets[petId].sleeplevel;
     }
 
     // check hunger level
-    function checkHunger(uint256 petid) isPetOwner(petid) public returns (uint256) {
-        updateHunger(petid);
+    function checkHunger(uint256 petId) isPetOwner(petId) public returns (uint256) {
+        updateHunger(petId);
 
         // emit event so user can see
-        emit HungerLevel(petid, pets[petid].hunger);
+        emit HungerLevel(petId, pets[petId].hunger);
 
-        return pets[petid].hunger;
+        return pets[petId].hunger;
     }
 
     // helper function to calc hunger decrease over time
-    function updateHunger(uint256 petid) internal {
-        uint256 timedif = ((uint256(block.timestamp) - pets[petid].hungertime) / 3600) * 10;
+    function updateHunger(uint256 petId) internal {
+        uint256 timedif = ((uint256(block.timestamp) - pets[petId].hungertime) / 3600) * 10;
 
         if (timedif > 100) {
             timedif = 100;
         }
 
-        if (pets[petid].hunger < timedif) {
-            timedif = pets[petid].hunger;
+        if (pets[petId].hunger < timedif) {
+            timedif = pets[petId].hunger;
         }
 
-        pets[petid].hunger -= uint8(timedif);
-        pets[petid].hungertime = uint32(block.timestamp);
+        pets[petId].hunger -= uint8(timedif);
+        pets[petId].hungertime = uint32(block.timestamp);
     }
 
     // put pet to bed
-    function naptime(uint256 petid) isPetOwner(petid) public {
-        require(!pets[petid].asleep, "Your pet is already sleeping!");
-        pets[petid].asleep = true;
+    function naptime(uint256 petId) isPetOwner(petId) public {
+        require(!pets[petId].asleep, "Your pet is already sleeping!");
+        pets[petId].asleep = true;
         //update sleeptime
-        pets[petid].sleeptime = uint32(block.timestamp);
+        pets[petId].sleeptime = uint32(block.timestamp);
     }
 
     //wake pet up
-       function wakeup(uint256 petid) isPetOwner(petid) public {
-        require(pets[petid].asleep, "Your pet is already awake!");
-        pets[petid].asleep = false;
+       function wakeup(uint256 petId) isPetOwner(petId) public {
+        require(pets[petId].asleep, "Your pet is already awake!");
+        pets[petId].asleep = false;
        //full sleep is a little under 8 hours, regain sleep level at rate of 13 per hour
-        uint32 addup = ((uint32(block.timestamp) - pets[petid].sleeptime)/3600)*13;
+        uint32 addup = ((uint32(block.timestamp) - pets[petId].sleeptime)/3600)*13;
         //maximum sleep level is 100
         if (addup > 100) {
             addup = 100;
         }
-        if (addup + pets[petid].sleeplevel > 100) {
-            pets[petid].sleeplevel = 100;
+        if (addup + pets[petId].sleeplevel > 100) {
+            pets[petId].sleeplevel = 100;
         } else {
-            pets[petid].sleeplevel += uint8(addup);
+            pets[petId].sleeplevel += uint8(addup);
         }
         //update wake time
-        pets[petid].sleeptime = uint32(block.timestamp); 
+        pets[petId].sleeptime = uint32(block.timestamp); 
     }
 
     // feed pet
     // uses food tokens directly, burns once used
-    function feedPet(uint256 petid, uint256 amount) isPetOwner(petid) public {
+    function feedPet(uint256 petId, uint256 amount) isPetOwner(petId) public {
         // check user has enough food
         require(food.balanceOf(msg.sender) >= amount, "You don't have enough food");
 
@@ -399,15 +402,22 @@ contract Web3Kinz {
         // burns from caller
 
         // update pet hunger
-        if (pets[petid].hunger + amount > 100) {
-            pets[petid].hunger = 100;
+        if (pets[petId].hunger + amount > 100) {
+            pets[petId].hunger = 100;
         } else {
-            pets[petid].hunger += uint256(amount);
+            pets[petId].hunger += uint256(amount);
         }
     }
     
     
-    // modifier isComa - pay eth to "revive" pet / take to doctor
+    // take pet to the vet
+    function takeToVet(uint256 petId) public payable isPetOwner(petId) {
+        // check if pet is comatose
+        // pay vet fee
+        // revive pet and reset basic needs
+        // reset timers so needs don't immediately drop
+        // 
+    } 
 
     // ************************
     // ** gameplay functions **
@@ -616,7 +626,7 @@ contract Web3Kinz {
     // user gets 3 tries to find a gem
     // can play once per day
     // (gems are tracked as numbers in array, not nfts)
-        function gemHunt(uint256 petid) public isPetOwner(petid) {
+        function gemHunt(uint256 petId) public isPetOwner(petId) {
             // check time
             require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
 
@@ -756,16 +766,16 @@ contract Web3Kinz {
                 // no gem found
             }
             // decrease hunger & sleep after playing
-            if (pets[petid].hunger > 5) {
-                pets[petid].hunger -= 5;
+            if (pets[petId].hunger > 5) {
+                pets[petId].hunger -= 5;
             } else {
-                pets[petid].hunger = 0;
+                pets[petId].hunger = 0;
             }
 
-            if (pets[petid].sleeplevel > 5) {
-                pets[petid].sleeplevel -= 5;
+            if (pets[petId].sleeplevel > 5) {
+                pets[petId].sleeplevel -= 5;
             } else {
-                pets[petid].sleeplevel = 0;
+                pets[petId].sleeplevel = 0;
             }
     }
 
