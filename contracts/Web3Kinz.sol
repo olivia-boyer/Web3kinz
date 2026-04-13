@@ -447,7 +447,7 @@ contract Web3Kinz {
 
     //TODO: modify to match new storage form
     // spinning a wheel - give you furniture, clothes, KinzCash - once a day //glory
-    function wheelOfWow() public {
+    function wheelOfWow() public notComatose(petId) {
         // check the time, ensure 24 hours has past since last play time
         require(block.timestamp >= users[msg.sender].lastWheelOfWoW + 1 days, "24 hours have not yet passed!!");
         // update mapping to current time
@@ -541,7 +541,7 @@ contract Web3Kinz {
     }
 
     // wishing well - slot machine (3 random number generators) - KinzCash, once a day x5// olivia
-   function wishingWell() public {
+   function wishingWell() public notComatose(petId) {
 
            // check the time, ensure 24 hours has past since last play time
      
@@ -648,7 +648,7 @@ contract Web3Kinz {
     // user gets 3 tries to find a gem
     // can play once per day
     // (gems are tracked as numbers in array, not nfts)
-        function gemHunt(uint256 petId) public isPetOwner(petId) {
+        function gemHunt(uint256 petId) public isPetOwner(petId) notComatose(petId) {
             // check time
             require(block.timestamp - users[msg.sender].lastGemHunt >= 1 days, "Gem hunt can only be played once a day");
 
