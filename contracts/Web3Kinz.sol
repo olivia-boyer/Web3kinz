@@ -166,6 +166,9 @@ contract Web3Kinz {
     // for vet trip
     event VetTrip(uint256 petId);
 
+    // for wheel of wow
+    event WheelPrize(string prizeType, uint256 amountOrId);
+
     // ***************
     // ** functions **
     // ***************
@@ -465,7 +468,7 @@ contract Web3Kinz {
 
     // check health stats and determine if comatose
     function _checkHealth(uint256 petId) internal {
-        if (pets[petId].hunger == 0 && pets[petId].sleeplevel == 0) {
+        if (pets[petId].hunger == 0 && pets[petId].sleeplevel == 0 && pets[petId].happiness == 0) {
             pets[petId].comatose = true;
         }
     }
@@ -496,6 +499,9 @@ contract Web3Kinz {
 
             // mint clothing nft
             clothing.safeMint(msg.sender, clothingKind);
+
+            // emit event
+            emit WheelPrize("Clothing", clothingKind);
         }
         // random selection of furniture
         else if (wowValue < 30) {
@@ -505,6 +511,9 @@ contract Web3Kinz {
 
             // mint furniture nft
             furniture.safeMint(msg.sender, furnitureKind);
+
+            // emit event
+            emit WheelPrize("Furniture", furnitureKind);
         }
         // random selection of food
         else if (wowValue < 50) {
@@ -515,6 +524,9 @@ contract Web3Kinz {
             // increment count for specific food item in user's inventory
             //userFoodCount[msg.sender][foodIndex] += 1;
             food.mint(msg.sender, 10);
+
+            // emit event
+            emit WheelPrize("Food", 10);
         }
         // random amount of KinzCash
         else {
@@ -546,6 +558,29 @@ contract Web3Kinz {
             }
             // output owed amount to user's account
             users[msg.sender].balance += cashAmount;
+
+            // emit event
+            emit WheelPrize("KinzCash", cashAmount);
+        }
+
+        // decrease hunger & sleep after playing
+        if (pets[petId].hunger > 5) {
+            pets[petId].hunger -= 5;
+        } else {
+            pets[petId].hunger = 0;
+        }
+
+        if (pets[petId].sleeplevel > 5) {
+            pets[petId].sleeplevel -= 5;
+        } else {
+            pets[petId].sleeplevel = 0;
+        }
+
+        // increase happiness after playing
+        if (pets[petId].happiness <= 90) {
+            pets[petId].happiness += 10;
+        } else {
+            pets[petId].happiness = 100;
         }
     }
 
@@ -669,7 +704,6 @@ contract Web3Kinz {
         users[msg.sender].wishes -= 1; //decrement daily wish count before cashout
         users[msg.sender].balance += prize; //add prize money to user balance
     }
-
 
     // gem hunt game
     // user gets 3 tries to find a gem
