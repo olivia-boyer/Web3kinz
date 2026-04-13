@@ -47,7 +47,7 @@ async function main() {
     console.log("Found gem:", gem);
 
     // try to play again not after 24 hours
-    //const gemtx2 = await web3kinz.gemHunt(petId);
+    // const gemtx2 = await web3kinz.gemHunt(petId);
 
     // check gem amount
     const gctx = await web3kinz.checkGemAmount(gem.toString());
@@ -95,6 +95,20 @@ async function main() {
     const hlevent2 = receipt8.logs.find(log => log.fragment && log.fragment.name === "HungerLevel");
     const hungerLevel2 = hlevent2.args.hunger;
     console.log("hunger level after feeding:", hungerLevel2.toString());
+
+    // put pet to bed
+
+    // wake pet up
+
+    // buy clothing
+
+    // buy furniture
+
+    // play wheel of wow
+    
+    // play wishing well
+
+    // check happiness after playing game
 }
 
 main().catch((error) => {
