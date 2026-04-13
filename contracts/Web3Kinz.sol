@@ -809,6 +809,14 @@ contract Web3Kinz {
                 }
 
                 emit GemFound(msg.sender, gem);
+
+                // happiness for finding gem
+                if (pets[petId].happiness <= 90) {
+                    pets[petId].happiness += 10;
+                } else {
+                    pets[petId].happiness = 100;
+                }
+
                 break; 
                 // only 1 gem per game
             }
@@ -825,6 +833,13 @@ contract Web3Kinz {
             pets[petId].sleeplevel -= 5;
         } else {
             pets[petId].sleeplevel = 0;
+        }
+
+        // decrease happiness for no gem
+        if (pets[petId].happiness > 5) {
+            pets[petId].happiness -= 5;
+        } else {
+            pets[petId].happiness = 0;
         }
 
         // check stats
