@@ -107,11 +107,18 @@ async function main() {
     // buy furniture
 
     // play wheel of wow
+    await web3kinz.wheelOfWow(petId);
     
     // play wishing well
     
     await web3kinz.wishingWell(petId);
+
     // check happiness after playing game
+    const hptx = await web3kinz.checkHappiness(petId);
+    const receipt9 = await hptx.wait();
+    const hpevent = receipt9.logs.find(log => log.fragment && log.fragment.name === "HappinessLevel");
+    const happinessLevel = hpevent.args.happiness;
+    console.log("happiness level after playing games:", happinessLevel.toString());
 }
 
 main().catch((error) => {
