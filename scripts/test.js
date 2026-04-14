@@ -109,6 +109,7 @@ async function main() {
     // play wheel of wow
     
     // play wishing well
+    
     await web3kinz.wishingWell(petId);
     // check happiness after playing game
 }

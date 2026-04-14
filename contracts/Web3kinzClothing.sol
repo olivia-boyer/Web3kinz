@@ -15,7 +15,8 @@ import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/
 contract Web3KinzClothing is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     uint256 private _nextTokenId;
 
-    //two possible clothing options currently
+    //three possible clothing options currently
+    //first two drawn by Olivia, the third (crown) is from the actual webkinz game
     string[3] private images = ["ipfs://bafkreib62nibyvfegj2omkxmytg632fhxz473yxfcij7k7hvzynlf5jseu","bafkreibzets4aisvn75hanrdr2usjqu5okyktbyjliv4wphgtn5t2nvgoq","bafkreigz2qq3wtwnywusd22rtzkkpihjl3ok7hcixixez4vklzeoahi32y"];
 
     constructor(address initialOwner)

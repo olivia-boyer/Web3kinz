@@ -320,6 +320,7 @@ contract Web3Kinz {
     function purchaseClothing(uint8 kind) public {
         // there are only 100 clothing items
         require(kind < 100, "Clothing type does not exist.");
+        require(kind != 2, "Cannot Purchase Crown.");
         require(users[msg.sender].balance > 100, "Clothing items cost 100 KinzCash");
         users[msg.sender].balance -= 100;
         // call function from other contract
