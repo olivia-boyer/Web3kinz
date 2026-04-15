@@ -37,3 +37,6 @@ ERC-721 implementation used for minting pet NFTS. Called in the adoptpet functio
 1. The pet struct is unecessarily large.
 2. Issues may arise from trying to make the pet name too long.
 3. Calling PurchaseClothing with a multiple of three could allow users to buy crown. Modulus operation in Web3kinzClothing contract was meant to be temporary but lacked time to draw 100 unique clothing items.
+
+## How to Use(?):
+Compile with: npx hardhat compile
