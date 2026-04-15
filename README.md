@@ -14,9 +14,9 @@ General
 Pet Needs
 * 
 Games
-* wheelOfWow: spin a "wheel" (random number generator) and receive a prize of furniture, clothing, food, or KinzCash
-* wishingWell:
-* gemHunt: 
+* wheelOfWow: spin a wheel (random number generator); users can receive a prize of furniture, clothing, food, or KinzCash based on qualifying values
+* wishingWell: slot machine (three rows of random number generators); users can receive a prize of furniture, clothing, food, or KinzCash
+* gemHunt: users have a chance to find a gem
 
 ### Web3kinzClothing.sol: 
 ERC-721 implementation used for minting clothing NFTS. Currently there are three options: a t-shirt, a bow shirt, and the crown that is the prize for completing the gem hunt game.
