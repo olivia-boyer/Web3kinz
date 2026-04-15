@@ -9,7 +9,14 @@ for their pets.
 The main web3kinz contract. This contract deploys the three NFT contracts and one token contract. Functionality includes adopting pets, buying kinzcash, and playing three games: Wheel of Wow, Wishing Well, and Gem Hunt.
 
 #### Functions:
-
+General
+* 
+Pet Needs
+* 
+Games
+* wheelOfWow: spin a "wheel" (random number generator) and receive a prize of furniture, clothing, food, or KinzCash
+* wishingWell:
+* gemHunt: 
 
 ### Web3kinzClothing.sol: 
 ERC-721 implementation used for minting clothing NFTS. Currently there are three options: a t-shirt, a bow shirt, and the crown that is the prize for completing the gem hunt game.
