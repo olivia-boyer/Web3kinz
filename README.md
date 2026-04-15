@@ -4,7 +4,7 @@ play three daily games, and attend to pets' needs of happiness (increased by pla
 (increased by feeding), and sleep (increased by putting to bed). Users can also buy clothing and furniture
 for their pets.
 
-Files:
+## Files:
 Web3Kinz.sol: The main web3kinz contract. This contract deploys the three NFT contracts and one token contract. 
 Functionality includes adopting pets, buying kinzcash, and playing three games: Wheel of Wow, Wishing Well, and 
 Gem Hunt.
