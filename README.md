@@ -14,7 +14,7 @@ General
 
 Pet Needs
 * checker functions: functions that separately check sleep level (checkSleepStats), hunger (checkHunger), and happiness (checkHappiness), as well as overall check of need levels (_checkHealth); pets are put in a coma state if all needs are at 0
-* update functions: functions that individually update hunger (updateHunger) and sleep level (naptime)
+* update functions: functions that individually update hunger (feedPet) and sleep level (naptime)
 
 Games
 * wheelOfWow: spin a wheel (random number generator); users can receive a prize of furniture, clothing, food, or KinzCash based on qualifying values
